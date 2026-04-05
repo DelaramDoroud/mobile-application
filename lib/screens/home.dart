@@ -1,176 +1,202 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../components/details_frame.dart';
-import '../data/firestore_repo.dart';
 import '../components/home_section_carousel.dart';
+import '../data/firestore_repo.dart';
+import '../theme/app_theme.dart';
 import 'reservation.dart';
-// import '../components/hover_searchBar.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
 
   final _repo = FirestoreRepo();
 
-  // رنگ‌های پیشنهادی برای سه بخش
-  // static const _transportColor = Color(0xFF51AEF0);
-  // static const _accommodationColor = Color(0xFFF0BE51);
-  // static const _tourColor = Color(0xFF7ED957);
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 0.0),
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: 260.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                // image: DecorationImage(
-                //   image: AssetImage("images/pic1.png"),
-                //   fit: BoxFit.cover,
-                // ),
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset("images/pic1.png", fit: BoxFit.cover),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppColors.surface, AppColors.surfaceStrong.withOpacity(0.7)],
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _HeroBanner(),
+            HomeSectionCarousel(
+              index: 0,
+              title: 'Recommended Transports',
+              onMore: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            ReservePage(accomodations: false, transport: false),
                   ),
-                  Positioned(
-                    bottom: 42,
-                    left: MediaQuery.of(context).size.width * 0.08,
-                    child: Text(
-                      "Plan\nyour\ntravel",
-                      style: GoogleFonts.dancingScript(
-                        color: Colors.white,
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        //fontFamily: 'DancingScript',
-                      ),
-                    ),
-                  ),
-                  // Hover Effect Applied Here
-                  //HoverableSearchBar(hint_text: "Enter your destination"),
-                ],
-              ),
+                );
+              },
+              stream: _repo.streamLatestTransports(limit: 4),
+              itemBuilder: (m) {
+                final type = (m['mode'] ?? '').toString();
+                final origin = m['from']['city'] ?? '';
+                final destination = m['to']['city'] ?? '';
+                final price = (m['basePrice'] ?? 0).toString();
+                final schedule = m['schedule'] as Map<String, dynamic>? ?? {};
+                var dateText = '';
+                if (schedule.isNotEmpty) {
+                  final start = (schedule['departAt']).toDate();
+                  dateText = '${start.day} ${_mon(start)}';
+                }
+
+                return DetailsFrame(
+                  id: m['id'],
+                  imagePath: 'images/pic3.jpg',
+                  title: type,
+                  type: 'transport',
+                  relatedDestinationId: m['to']['code']?.toString(),
+                  origin: origin,
+                  destination: destination,
+                  price: '$price \$ - $dateText',
+                  color: const Color(0xFF8BC8F3),
+                );
+              },
             ),
-          ),
-          // ---------- Recommended Transport Tickets ----------
-          HomeSectionCarousel(
-            index: 0,
-            title: "Recommended Transports",
-            onMore: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (_) =>
-                          ReservePage(accomodations: false, transport: false),
-                ),
-              );
-            },
-            stream: _repo.streamLatestTransports(limit: 4),
-            itemBuilder: (m) {
-              final type = (m['mode'] ?? '').toString();
-              final name = "$type \n ${m['from']['city']} → ${m['to']['city']}";
-              final price = (m['basePrice'] ?? 0).toString();
-              final currency =
-                  (m['currency'] == "USD" ? '\$' : '\$').toString();
-              final schedule = m['schedule'] as Map<String, dynamic>? ?? {};
-              String dateText = '';
-              if (schedule.isNotEmpty) {
-                final start = (schedule["departAt"] ).toDate();
-                dateText = "${start.day} ${_mon(start)}";
-                // یا اگر بازه خواستی:
-                // final last = (dates.last as Timestamp).toDate();
-                // dateText = "${first.day}-${last.day} ${_mon(first)}";
-              }
+            HomeSectionCarousel(
+              index: 1,
+              title: 'Recommended Accommodations',
+              onMore: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            ReservePage(accomodations: true, transport: false),
+                  ),
+                );
+              },
+              stream: _repo.streamLatestAccommodations(limit: 4),
+              itemBuilder: (m) {
+                final name = (m['name'] ?? '').toString();
+                final destination = (m['destination']['name'] ?? '').toString();
+                final price = (m['pricePerNight'] ?? 0).toString();
+                return DetailsFrame(
+                  id: m['id'],
+                  imagePath: 'images/pic3.jpg',
+                  title: name,
+                  type: 'accommodation',
+                  relatedDestinationId: m['destination']['id']?.toString(),
+                  maxGuests: (m['maxGuests'] ?? 2) as int,
+                  bedrooms: (m['bedrooms'] ?? 1) as int,
+                  beds: (m['beds'] ?? 1) as int,
+                  bathrooms: (m['bathrooms'] ?? 1) as int,
+                  amenities: (m['amenities'] ?? const []) as List<dynamic>,
+                  destination: destination,
+                  price: '$price \$ - per night',
+                  color: const Color(0xFFF3CB86),
+                );
+              },
+            ),
+            HomeSectionCarousel(
+              index: 2,
+              title: 'Recommended Tours',
+              onMore: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            ReservePage(accomodations: false, transport: false),
+                  ),
+                );
+              },
+              stream: _repo.streamLatestTours(limit: 4),
+              itemBuilder: (m) {
+                final name = (m['name'] ?? '').toString();
+                final origin = (m['origin']['name'] ?? '').toString();
+                final price = (m['price'] ?? 0).toString();
+                var dateText = '';
+                final dates = m['dates'] as Map<String, dynamic>? ?? {};
+                if (dates.isNotEmpty) {
+                  final start = (dates['startDate']).toDate();
+                  dateText = '${start.day} ${_mon(start)} ${start.year}';
+                }
 
-              // final List imgs = (m['images'] as List?) ?? [];
-              // final firstImg =
-              //     imgs.isNotEmpty
-              //         ? imgs.first.toString()
-              //         : 'images/common/placeholder.jpg';
-              return DetailsFrame(
-                imagePath: "images/pic3.jpg",
-                title: name,
-                price: "$price $currency - $dateText",
-                color: const Color.fromARGB(255, 81, 174, 240),
-              );
-            },
-          ),
+                return DetailsFrame(
+                  id: m['id'],
+                  imagePath: 'images/pic3.jpg',
+                  title: name,
+                  type: 'tour',
+                  origin: origin,
+                  price: '$price \$ - $dateText',
+                  color: const Color(0xFF93D8B2),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-          // ---------- Recommended Accommodations ----------
-          HomeSectionCarousel(
-            index: 1,
-            title: "Recommended Accommodations",
-            onMore: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (_) => ReservePage(accomodations: true, transport: false),
-                ),
-              );
-            },
-            stream: _repo.streamLatestAccommodations(limit: 4),
-            itemBuilder: (m) {
-              final name = (m['name'] ?? '').toString();
-              final price = (m['pricePerNight'] ?? 0).toString();
-              final currency =
-                  (m['currency'] == "USD" ? '\$' : '\$').toString();
-              //final List imgs = (m['images'] as List?) ?? [];
-              //final firstImg = imgs.isNotEmpty ? imgs.first.toString() : null;
-              return DetailsFrame(
-                imagePath: "images/pic3.jpg",
-                title: name,
-                price: "$price $currency - per night",
-                color: const Color.fromARGB(255, 240, 190, 81),
-              );
-            },
-          ),
+class _HeroBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
 
-          // ---------- Recommended Tours ----------
-          HomeSectionCarousel(
-            index: 2,
-            title: "Recommended Tours",
-            onMore: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (_) =>
-                          ReservePage(accomodations: false, transport: false),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: Container(
+        width: double.infinity,
+        height: 280,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.16),
+              blurRadius: 24,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset('images/pic1.png', fit: BoxFit.cover),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.12),
+                      Colors.black.withOpacity(0.52),
+                    ],
+                  ),
                 ),
-              );
-            },
-            stream: _repo.streamLatestTours(limit: 4),
-            itemBuilder: (m) {
-              final name = (m['name'] ?? '').toString();
-              final price = (m['price'] ?? 0).toString();
-              final currency =
-                  (m['currency'] == "USD" ? '\$' : '\$').toString();
-              // final List imgs = (m['images'] as List?) ?? [];
-              //final firstImg = imgs.isNotEmpty ? imgs.first.toString() : null;
-              String dateText = '';
-              final dates = m['dates'] as Map<String, dynamic>? ?? {};
-              if (dates.isNotEmpty) {
-                final start = (dates["startDate"]).toDate();
-                dateText = "${start.month}${_mon(start)} ${start.year}";
-              }
-              return DetailsFrame(
-                imagePath: "images/pic3.jpg",
-                title: name,
-                price: "$price $currency - $dateText",
-                color: Colors.greenAccent,
-              );
-            },
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 84, 24, 24),
+                child: Text(
+                  'Plan your travel',
+                  style: GoogleFonts.adamina(
+                    color: AppColors.white,
+                    fontSize: width < 380 ? 32 : 38,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../components/navigation_bar.dart';
-import 'register.dart';
-import '../components/input_fields.dart';
+
 import '../components/click_button.dart';
+import '../components/input_fields.dart';
+import '../components/navigation_bar.dart';
+import '../theme/app_theme.dart';
+import 'register.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -43,138 +46,129 @@ class _LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                children: [
-                  _header(context),
-                  _inputFields(context),
-                  _submitButton(context),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterPage()),
-                      );
-                    },
-                    child: const Text("Don't have an account? Sign up"),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
-                ],
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Sign in',
+                          style: textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Access your bookings and continue planning your next trip.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.muted,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 28),
+                        InputFields(
+                          controller: _emailCtrl,
+                          hint_text: 'Email or username',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.person_outline_rounded,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Username is empty';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InputFields(
+                          controller: _passwordCtrl,
+                          hint_text: 'Password',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.lock_outline_rounded,
+                          obscureText: _obscurePwd,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePwd
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () {
+                              setState(() => _obscurePwd = !_obscurePwd);
+                            },
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return 'Password is empty';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        ClickButton(
+                          text: 'Log in',
+                          isLoading: _isLoading,
+                          onPressed: _onSignIn,
+                          backgroundColor: AppColors.primary,
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterPage(),
+                              ),
+                            );
+                          },
+                          child: const Text("Don't have an account? Sign up"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  _header(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).size.height * 0.09,
-        //left: MediaQuery.of(context).size.height * 0.1,
-      ),
-      //width: MediaQuery.of(context).size.width * 1,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        //spacing: 10,
-        children: [
-          Text(
-            "Sign in",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w400,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 10),
-          Text(
-            "to your account",
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromARGB(255, 130, 123, 123),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  _inputFields(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
-      padding: EdgeInsets.symmetric(
-        vertical: 20,
-        horizontal: MediaQuery.of(context).size.width * 0.08,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InputFields(
-            controller: _emailCtrl,
-            hint_text: "Username",
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.person,
-            validator:
-                (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? 'Username is empty'
-                        : null,
-          ),
-          InputFields(
-            controller: _passwordCtrl,
-            hint_text: "Password",
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.password,
-            obscureText: _obscurePwd,
-            suffixIcon: IconButton(
-              icon: Icon(_obscurePwd ? Icons.visibility : Icons.visibility_off),
-              onPressed: () => setState(() => _obscurePwd = !_obscurePwd),
-            ),
-            validator:
-                (v) => (v == null || v.isEmpty) ? 'Password is empty' : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  _submitButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.08,
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ClickButton(
-          text: "Log in",
-          isLoading: _isLoading,
-          onPressed: _onSignIn,
-          backgroundColor: Colors.greenAccent,
         ),
       ),
     );

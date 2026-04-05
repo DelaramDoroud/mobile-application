@@ -126,6 +126,10 @@ class FirestoreSeeder {
         "ratingCount": 310,
         "pricePerNight": 78,
         "currency": "USD",
+        "maxGuests": 4,
+        "bedrooms": 2,
+        "beds": 2,
+        "bathrooms": 2,
         "amenities": ["wifi", "ac", "breakfast", "pool", "spa"],
         "location": {"lat": -8.506, "lng": 115.262, "address": "Ubud, Bali"},
         "images": [
@@ -145,6 +149,11 @@ class FirestoreSeeder {
             "pricePerNight": 78,
           },
         ],
+        "description":
+            "Nestled in the lush forests of Ubud, this 4-star villa offers a serene escape surrounded by nature. "
+            "Enjoy the outdoor pool, spa treatments, and daily breakfast included in your stay. "
+            "Rooms are available from October 1 to December 31, 2025. Check-in starts at 14:00 and check-out is until 12:00. "
+            "Free cancellation is available up to 24 hours before arrival.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -157,6 +166,10 @@ class FirestoreSeeder {
         "ratingCount": 220,
         "pricePerNight": 45,
         "currency": "USD",
+        "maxGuests": 2,
+        "bedrooms": 1,
+        "beds": 1,
+        "bathrooms": 1,
         "amenities": ["wifi", "ac", "breakfast"],
         "location": {"lat": -8.717, "lng": 115.168, "address": "Kuta, Bali"},
         "images": ["images/accommodations/acc_kuta_beach_inn/1.jpg"],
@@ -173,6 +186,11 @@ class FirestoreSeeder {
             "pricePerNight": 45,
           },
         ],
+        "description":
+            "Located just steps from the beach, Kuta Beach Inn provides affordable comfort with 3-star service. "
+            "Enjoy air-conditioned rooms, free Wi-Fi, and complimentary breakfast each morning. "
+            "Available from September through December 2025. Check-in from 14:00 and check-out at 12:00. "
+            "Free cancellation up to 48 hours before your stay.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -188,6 +206,10 @@ class FirestoreSeeder {
         "ratingCount": 180,
         "pricePerNight": 32,
         "currency": "USD",
+        "maxGuests": 3,
+        "bedrooms": 1,
+        "beds": 2,
+        "bathrooms": 1,
         "amenities": ["wifi", "breakfast", "parking"],
         "location": {
           "lat": -7.801,
@@ -208,6 +230,11 @@ class FirestoreSeeder {
             "pricePerNight": 32,
           },
         ],
+        "description":
+            "Jogja Heritage BnB offers cozy rooms in the heart of Yogyakarta’s cultural district. "
+            "This 3-star apartment includes breakfast, Wi-Fi, and private parking. "
+            "Available between August and December 2025. Check-in begins at 13:00 and check-out at 11:00. "
+            "Free cancellation up to 24 hours prior to arrival.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -220,6 +247,10 @@ class FirestoreSeeder {
         "ratingCount": 540,
         "pricePerNight": 70,
         "currency": "USD",
+        "maxGuests": 3,
+        "bedrooms": 1,
+        "beds": 2,
+        "bathrooms": 1,
         "amenities": ["wifi", "ac", "gym", "breakfast"],
         "location": {"lat": -6.2, "lng": 106.816, "address": "Central Jakarta"},
         "images": ["images/accommodations/acc_jakarta_central_hotel/1.jpg"],
@@ -236,6 +267,11 @@ class FirestoreSeeder {
             "pricePerNight": 70,
           },
         ],
+        "description":
+            "Situated in the heart of Jakarta, this 4-star hotel combines comfort and convenience with modern amenities. "
+            "Facilities include a gym, air conditioning, and complimentary breakfast. "
+            "Rooms are available from September 15 to 31, 2025. Check-in starts at 14:00, check-out by 12:00. "
+            "Free cancellation available within 24 hours of booking.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -248,6 +284,10 @@ class FirestoreSeeder {
         "ratingCount": 95,
         "pricePerNight": 18,
         "currency": "USD",
+        "maxGuests": 2,
+        "bedrooms": 1,
+        "beds": 2,
+        "bathrooms": 1,
         "amenities": ["parking", "kitchen"],
         "location": {
           "lat": -8.411,
@@ -268,6 +308,11 @@ class FirestoreSeeder {
             "pricePerNight": 18,
           },
         ],
+        "description":
+            "For nature lovers and trekkers, Rinjani Base Camp offers simple eco-lodges near the famous volcano trails. "
+            "Facilities include a shared kitchen and parking. "
+            "Rooms are available from July to November 2025. Check-in starts at 12:00 and check-out by 10:00. "
+            "Please note that bookings are non-refundable.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -280,6 +325,10 @@ class FirestoreSeeder {
         "ratingCount": 260,
         "pricePerNight": 150,
         "currency": "USD",
+        "maxGuests": 4,
+        "bedrooms": 2,
+        "beds": 3,
+        "bathrooms": 2,
         "amenities": ["wifi", "ac", "pool", "spa", "breakfast"],
         "location": {"lat": -8.487, "lng": 119.889, "address": "Labuan Bajo"},
         "images": ["images/accommodations/acc_labuan_bajo_resort/1.jpg"],
@@ -296,6 +345,11 @@ class FirestoreSeeder {
             "pricePerNight": 150,
           },
         ],
+        "description":
+            "Labuan Bajo Resort is a luxurious 5-star hotel overlooking the sea. "
+            "Guests can enjoy world-class facilities such as a swimming pool, spa, and complimentary breakfast. "
+            "Available from September to December 2025. Check-in from 15:00 and check-out by 12:00. "
+            "Free cancellation up to 72 hours before your arrival.",
         "createdAt": FieldValue.serverTimestamp(),
       },
     ];
@@ -325,6 +379,10 @@ class FirestoreSeeder {
         "ratingAvg": 4.6,
         "ratingCount": 150,
         "gearSuggestions": ["hiking-shoes", "raincoat"],
+        "description":
+            "Explore the lush forests and rice terraces of Bali on this 3-day nature escape. "
+            "Departing from Yogyakarta on October 10, 2025, and returning on October 20, 2025, "
+            "you’ll travel by private transport with a local guide. Bring your hiking shoes and a raincoat for the outdoor adventures.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -347,6 +405,10 @@ class FirestoreSeeder {
         "ratingAvg": 4.5,
         "ratingCount": 210,
         "gearSuggestions": ["hat"],
+        "description":
+            "Immerse yourself in Balinese culture on a full-day tour of Ubud’s temples and rice terraces. "
+            "Departing from Yogyakarta between September 25 and October 2, 2025, this relaxing trip includes transport and a local guide. "
+            "A hat is recommended for sun protection during the day.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -372,6 +434,10 @@ class FirestoreSeeder {
         "ratingAvg": 4.7,
         "ratingCount": 320,
         "gearSuggestions": ["light-jacket"],
+        "description":
+            "Witness the stunning sunrise over Borobudur Temple on this one-day historical journey. "
+            "Departing from Labuan Bajo between September 15 and October 15, 2025, "
+            "you’ll travel comfortably by road and return by evening. Bring a light jacket for the early morning chill.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -394,6 +460,11 @@ class FirestoreSeeder {
         "ratingAvg": 4.8,
         "ratingCount": 140,
         "gearSuggestions": ["snorkel"],
+        "description":
+            "Sail through the Komodo Islands on a 2-day liveaboard adventure. "
+            "Depart from Denpasar between September 20 and October 5, 2025, "
+            "and explore the turquoise waters of Labuan Bajo by boat with an expert guide. "
+            "Don’t forget your snorkel gear for underwater exploration.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -416,6 +487,10 @@ class FirestoreSeeder {
         "ratingAvg": 4.6,
         "ratingCount": 90,
         "gearSuggestions": ["trekking-poles"],
+        "description":
+            "Challenge yourself with a 3-day trek up Mount Rinjani, departing from Denpasar between September 10 and October 1, 2025. "
+            "Camp under the stars and enjoy breathtaking views of Lombok. "
+            "This adventure includes meals and camping gear—trekking poles are highly recommended.",
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
@@ -438,6 +513,10 @@ class FirestoreSeeder {
         "ratingAvg": 4.4,
         "ratingCount": 160,
         "gearSuggestions": ["comfortable-shoes"],
+        "description":
+            "Discover the volcanic beauty of Tangkuban Perahu and the surrounding tea fields on this relaxing one-day trip. "
+            "Departing from Mataram between September 18 and October 18, 2025, you’ll travel by private car with a local guide. "
+            "Wear comfortable shoes for easy walking through the scenic fields.",
         "createdAt": FieldValue.serverTimestamp(),
       },
     ];
@@ -445,7 +524,7 @@ class FirestoreSeeder {
       batch.set(db.collection('tours').doc(t["id"] as String), t);
     }
 
-    // ---------------------- 4) attractions (6x) ----------------------
+    // ---------------------- 4) attractions (8x) ----------------------
     final attractions = [
       {
         "id": "attr_tegalalang",
@@ -463,7 +542,7 @@ class FirestoreSeeder {
       },
       {
         "id": "attr_uluwatu_temple",
-        "destination": {"id":"dest_bali", "name": "Bali"},
+        "destination": {"id": "dest_bali", "name": "Bali"},
         "name": "Uluwatu Temple",
         "category": "culture",
         "description": "Clifftop temple with sunset views.",
@@ -477,7 +556,7 @@ class FirestoreSeeder {
       },
       {
         "id": "attr_borobudur",
-      "destination": {"id":"dest_yogyakarta", "name": "Yogyakarta"},
+        "destination": {"id": "dest_yogyakarta", "name": "Yogyakarta"},
         "name": "Borobudur Temple",
         "category": "history",
         "description": "9th-century Mahayana Buddhist temple.",
@@ -495,7 +574,7 @@ class FirestoreSeeder {
       },
       {
         "id": "attr_prambanan",
-        "destination": {"id":"dest_yogyakarta", "name": "Yogyakarta"},
+        "destination": {"id": "dest_yogyakarta", "name": "Yogyakarta"},
         "name": "Prambanan Temple",
         "category": "history",
         "description": "Largest Hindu temple site in Indonesia.",
@@ -512,8 +591,44 @@ class FirestoreSeeder {
         "createdAt": FieldValue.serverTimestamp(),
       },
       {
+        "id": "attr_kota_tua",
+        "destination": {"id": "dest_jakarta", "name": "Jakarta"},
+        "name": "Kota Tua Jakarta",
+        "category": "history",
+        "description": "Historic old town filled with colonial architecture and museums.",
+        "ticketPrice": 4,
+        "openHours": "08:00-20:00",
+        "location": {
+          "lat": -6.1352,
+          "lng": 106.8133,
+          "address": "Taman Fatahillah, Jakarta",
+        },
+        "images": ["images/attractions/attr_kota_tua/1.jpg"],
+        "ratingAvg": 4.4,
+        "ratingCount": 780,
+        "createdAt": FieldValue.serverTimestamp(),
+      },
+      {
+        "id": "attr_rinjani_senaru",
+        "destination": {"id": "dest_lombok", "name": "Lombok"},
+        "name": "Mount Rinjani Senaru Trail",
+        "category": "nature",
+        "description": "Popular gateway route to Lombok's iconic volcano and crater rim.",
+        "ticketPrice": 12,
+        "openHours": "05:00-17:00",
+        "location": {
+          "lat": -8.3469,
+          "lng": 116.4037,
+          "address": "Senaru, North Lombok",
+        },
+        "images": ["images/attractions/attr_rinjani_senaru/1.jpg"],
+        "ratingAvg": 4.8,
+        "ratingCount": 540,
+        "createdAt": FieldValue.serverTimestamp(),
+      },
+      {
         "id": "attr_komodo_view",
-        "destination": {"id":"dest_komodo", "name": "Komodo"},
+        "destination": {"id": "dest_komodo", "name": "Komodo"},
         "name": "Padar Island Viewpoint",
         "category": "nature",
         "description": "Famous ridge with panoramic island views.",
@@ -640,26 +755,89 @@ class FirestoreSeeder {
     }
 
     // ---------------------- 6) reviews (نمونه) ----------------------
-    final reviews = [
-      {
-        "id": "rev_001",
-        "targetType": "accommodation",
-        "targetId": "acc_ubud_retreat",
-        "userId": "demo_user_1",
-        "rating": 5,
-        "text": "Great jungle vibe and friendly staff.",
-        "createdAt": DateTime.utc(2025, 9, 1, 10),
-      },
-      {
-        "id": "rev_002",
-        "targetType": "tour",
-        "targetId": "tour_borobudur_sunrise",
-        "userId": "demo_user_2",
-        "rating": 4,
-        "text": "Magical sunrise, well organized.",
-        "createdAt": DateTime.utc(2025, 9, 5, 8),
-      },
-    ];
+    final reviews = <Map<String, dynamic>>[];
+    // برای همه اقامتگاه‌ها 2 نظر بساز
+    for (final a in accommodations) {
+      reviews.addAll([
+        {
+          "id": "rev_${a['id']}_1",
+          "targetType": "accommodation",
+          "targetId": a["id"],
+          "userId": "sara_1",
+          "rating": (a['stars'] ?? 4),
+          "text":
+              "I really enjoyed staying at ${a['name']}. Clean rooms, great location and very kind staff!",
+          "createdAt": DateTime.utc(2025, 9, 10),
+        },
+        {
+          "id": "rev_${a['id']}_2",
+          "targetType": "accommodation",
+          "targetId": a["id"],
+          "userId": "john_2",
+          "rating": ((a['stars'] ?? 3)),
+          "text":
+              "Good experience at ${a['name']}, though breakfast could be better. Overall, worth the price.",
+          "createdAt": DateTime.utc(2025, 9, 12),
+        },
+      ]);
+    }
+
+    // برای همه تورها 3 نظر بساز
+    for (final t in tours) {
+      reviews.addAll([
+        {
+          "id": "rev_${t['id']}_1",
+          "targetType": "tour",
+          "targetId": t["id"],
+          "userId": "alice_3",
+          "rating": (t['ratingAvg'] ?? 4),
+          "text":
+              "The ${t['name']} was fantastic! Our guide was super friendly and knowledgeable.",
+          "createdAt": DateTime.utc(2025, 9, 20),
+        },
+        {
+          "id": "rev_${t['id']}_2",
+          "targetType": "tour",
+          "targetId": t["id"],
+          "userId": "mark_4",
+          "rating": ((t['ratingAvg'] ?? 4.5)),
+          "text":
+              "Really enjoyed ${t['name']}! Would definitely recommend it to friends.",
+          "createdAt": DateTime.utc(2025, 9, 22),
+        },
+        {
+          "id": "rev_${t['id']}_3",
+          "targetType": "tour",
+          "targetId": t["id"],
+          "userId": "reza_5",
+          "rating": 5,
+          "text":
+              "Amazing experience on ${t['name']}! Everything was well organized and beautiful views all around.",
+          "createdAt": DateTime.utc(2025, 9, 25),
+        },
+      ]);
+    }
+
+    // final reviews = [
+    //   {
+    //     "id": "rev_001",
+    //     "targetType": "accommodation",
+    //     "targetId": "acc_ubud_retreat",
+    //     "userId": "demo_user_1",
+    //     "rating": 5,
+    //     "text": "Great jungle vibe and friendly staff.",
+    //     "createdAt": DateTime.utc(2025, 9, 1, 10),
+    //   },
+    //   {
+    //     "id": "rev_002",
+    //     "targetType": "tour",
+    //     "targetId": "tour_borobudur_sunrise",
+    //     "userId": "demo_user_2",
+    //     "rating": 4,
+    //     "text": "Magical sunrise, well organized.",
+    //     "createdAt": DateTime.utc(2025, 9, 5, 8),
+    //   },
+    // ];
     for (final r in reviews) {
       batch.set(db.collection('reviews').doc(r["id"] as String), r);
     }

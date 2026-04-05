@@ -20,20 +20,36 @@ class ClickButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
+        foregroundColor: textColor ?? theme.colorScheme.onPrimary,
         padding: EdgeInsets.symmetric(
           vertical: MediaQuery.of(context).size.width * 0.04,
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        elevation: 0,
       ),
       onPressed: isLoading ? null : onPressed,
       child:
           isLoading
-              ? const CircularProgressIndicator()
+              ? SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: textColor ?? theme.colorScheme.onPrimary,
+                ),
+              )
               : Text(
                 text,
-                style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 15),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  fontSize: 15,
+                ),
               ),
     );
   }

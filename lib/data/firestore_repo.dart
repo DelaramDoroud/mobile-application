@@ -154,7 +154,7 @@ class FirestoreRepo {
     Query<Map<String, dynamic>> q = _db.collection('attractions');
 
     if (destinationId != null && destinationId.isNotEmpty) {
-      q = q.where('destinationId', isEqualTo: destinationId);
+      q = q.where('destination.id', isEqualTo: destinationId);
     }
     if (category != null && category.isNotEmpty) {
       q = q.where('category', isEqualTo: category);
@@ -167,7 +167,7 @@ class FirestoreRepo {
     );
   }
 
-  // ---------------- dDestinations ----------------
+  // ---------------- Destinations ----------------
   Stream<List<Map<String, dynamic>>> streamDestinations({
     String? destinationName,
   }) {

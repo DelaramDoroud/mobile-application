@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../components/navigation_bar.dart';
-import 'login.dart';
-import "../components/input_fields.dart";
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
 import '../components/click_button.dart';
+import '../components/input_fields.dart';
+import '../components/navigation_bar.dart';
+import '../theme/app_theme.dart';
+import 'login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -34,7 +36,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _onSignUp() async {
-    // validating
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
@@ -48,15 +49,13 @@ class _RegisterPageState extends State<RegisterPage> {
       final username = _usernameCtrl.text.trim();
       await cred.user?.updateDisplayName(username);
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(cred.user!.uid)
-          .set({
-            'uid': cred.user!.uid,
-            'email': _emailCtrl.text.trim(),
-            'username': username,
-            'createdAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+        'uid': cred.user!.uid,
+        'email': _emailCtrl.text.trim(),
+        'username': username,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => NavBar()),
@@ -66,13 +65,13 @@ class _RegisterPageState extends State<RegisterPage> {
       String msg;
       switch (e.code) {
         case 'email-already-in-use':
-          msg = 'Email is already in used';
+          msg = 'Email is already in use';
           break;
         case 'invalid-email':
-          msg = 'Ivalid Email';
+          msg = 'Invalid email';
           break;
         case 'weak-password':
-          msg = 'Weak Password (at least 6 characters)';
+          msg = 'Weak password. Use at least 6 characters';
           break;
         default:
           msg = e.message ?? e.code;
@@ -86,175 +85,176 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                children: [
-                  _header(context),
-                  _inputFields(context),
-                  _submitButton(context),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LoginPage()),
-                      );
-                    },
-                    child: const Text("Already have an account? Sign in"),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
-                ],
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Create account',
+                          style: textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Set up your easyTrip profile once and keep every trip in one consistent place.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.muted,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 28),
+                        InputFields(
+                          controller: _usernameCtrl,
+                          hint_text: 'Username',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.person_outline_rounded,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Username is empty';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InputFields(
+                          controller: _emailCtrl,
+                          hint_text: 'Email',
+                          keyboardType: TextInputType.emailAddress,
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.alternate_email_rounded,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Email is not valid';
+                            }
+                            final ok = RegExp(
+                              r'^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}$',
+                            ).hasMatch(v);
+                            return ok ? null : 'Email format is not valid';
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InputFields(
+                          controller: _passwordCtrl,
+                          hint_text: 'Password',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.lock_outline_rounded,
+                          obscureText: _obscurePwd,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePwd
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () {
+                              setState(() => _obscurePwd = !_obscurePwd);
+                            },
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return 'Password is empty';
+                            }
+                            if (v.length < 6) {
+                              return 'At least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InputFields(
+                          controller: _confirmCtrl,
+                          hint_text: 'Confirm password',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.verified_user_outlined,
+                          obscureText: _obscureConfirm,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirm
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () {
+                              setState(
+                                () => _obscureConfirm = !_obscureConfirm,
+                              );
+                            },
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return 'Password confirm field is empty';
+                            }
+                            if (v != _passwordCtrl.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        ClickButton(
+                          text: 'Sign up',
+                          isLoading: _isLoading,
+                          onPressed: _onSignUp,
+                          backgroundColor: AppColors.primary,
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const LoginPage(),
+                              ),
+                            );
+                          },
+                          child: const Text('Already have an account? Sign in'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  _header(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).size.height * 0.09,
-        //left: MediaQuery.of(context).size.height * 0.1,
-      ),
-      //width: MediaQuery.of(context).size.width * 1,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        //spacing: 10,
-        children: [
-          Text(
-            "Sign up",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w400,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 10),
-          Text(
-            "Create your account",
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromARGB(255, 130, 123, 123),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  _inputFields(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
-      padding: EdgeInsets.symmetric(
-        vertical: 20,
-        horizontal: MediaQuery.of(context).size.width * 0.08,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InputFields(
-            controller: _usernameCtrl,
-            hint_text: "Username",
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.person,
-            validator:
-                (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? 'Username is empty'
-                        : null,
-          ),
-          InputFields(
-            controller: _emailCtrl,
-            hint_text: "Email",
-            keyboardType: TextInputType.emailAddress,
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.email,
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Email is not valid';
-              final ok = RegExp(
-                r'^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}$',
-              ).hasMatch(v);
-              return ok ? null : 'Email format is not valid';
-            },
-          ),
-          InputFields(
-            controller: _passwordCtrl,
-            hint_text: "Password",
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.password,
-            obscureText: _obscurePwd,
-            suffixIcon: IconButton(
-              icon: Icon(_obscurePwd ? Icons.visibility : Icons.visibility_off),
-              onPressed: () => setState(() => _obscurePwd = !_obscurePwd),
-            ),
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Password is empty';
-              if (v.length < 6) return 'at least 6 characters';
-              return null;
-            },
-          ),
-          InputFields(
-            controller: _confirmCtrl,
-            hint_text: "Confirm Password",
-            borderRadius: BorderRadius.circular(20),
-            hintCoolor: Colors.blueGrey,
-            fontSize: 16,
-            fillColor: Colors.greenAccent.withOpacity(0.4),
-            borderSide: BorderSide.none,
-            icon: Icons.password,
-            obscureText: _obscureConfirm,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirm ? Icons.visibility : Icons.visibility_off,
-              ),
-              onPressed:
-                  () => setState(() => _obscureConfirm = !_obscureConfirm),
-            ),
-            validator: (v) {
-              if (v == null || v.isEmpty)
-                return 'password confirm field is empty';
-              if (v != _passwordCtrl.text)
-                return 'password confirm is not equal to password ';
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  _submitButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.08,
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ClickButton(
-          text: "Sign up",
-          isLoading: _isLoading,
-          onPressed: _onSignUp,
-          backgroundColor: Colors.greenAccent,
         ),
       ),
     );

@@ -2,16 +2,19 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:tourism_app/models/attraction_model.dart';
 import 'package:tourism_app/screens/user_account.dart';
 import '../admin/admin_tools_page.dart';
-import '../screens/home.dart'; // Import your home screen
-import '../screens/reservation.dart';
-import '../screens/smart_travel.dart';
 import '../screens/about_us.dart';
 import '../screens/attractions.dart';
+import '../screens/home.dart';
+import '../screens/my_reservations.dart';
+import '../screens/reservation.dart';
+import '../screens/smart_travel.dart';
+import '../theme/app_theme.dart';
 
 class NavBar extends StatefulWidget {
+  const NavBar({super.key});
+
   @override
   _NavBarState createState() => _NavBarState();
 }
@@ -58,6 +61,7 @@ class _NavBarState extends State<NavBar> {
     });
   }
 
+  @override
   void dispose() {
     _authSub.cancel();
     _usernameCtrl.dispose();
@@ -121,9 +125,14 @@ class _NavBarState extends State<NavBar> {
             },
           ),
           actions: [
-            Text(
-              _usernameCtrl.text,
-              style: TextStyle(fontSize: 16, color: Colors.black),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(
+                  _usernameCtrl.text,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
             ),
             const AccountMenuButton(),
             Builder(
@@ -139,19 +148,13 @@ class _NavBarState extends State<NavBar> {
         ),
         body: _pages[_selectedIndex],
         bottomNavigationBar: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(18),
+            topRight: Radius.circular(18),
           ),
           child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
             currentIndex: _selectedIndex,
             onTap: (index) => _onItemTapped(index),
-            backgroundColor: Color.fromARGB(255, 100, 233, 202),
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.black54,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.train, size: 25),
@@ -182,9 +185,10 @@ class _NavBarState extends State<NavBar> {
 }
 
 class NavDrawer extends StatelessWidget {
+  const NavDrawer({super.key});
+
   @override
   Widget build(BuildContext context) {
-    //final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return Drawer(
       child: ListView(
@@ -192,16 +196,18 @@ class NavDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             margin: EdgeInsets.only(bottom: screenHeight * 0.04),
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 100, 233, 202),
+            decoration: const BoxDecoration(
+              gradient: AppColors.heroGradient,
             ),
             child: Text(
               "Menu",
-              style: TextStyle(fontSize: 24, color: Colors.white, height: 6),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: AppColors.white,
+                height: 2.6,
+              ),
             ),
           ),
           Column(
-            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             spacing: screenHeight * 0.02,
             children: [
               ListTile(
@@ -212,8 +218,12 @@ class NavDrawer extends StatelessWidget {
                 ),
                 title: Text("My Reservations"),
                 onTap: () {
-                  Navigator.pop(context);
-                  print("Settings Clicked");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MyReservationsPage(),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -228,7 +238,6 @@ class NavDrawer extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (_) => Attractions()),
                   );
-                  print("About Clicked");
                 },
               ),
               ListTile(
@@ -240,7 +249,6 @@ class NavDrawer extends StatelessWidget {
                 title: Text("History"),
                 onTap: () {
                   Navigator.pop(context);
-                  print("About Clicked");
                 },
               ),
               ListTile(
@@ -252,7 +260,6 @@ class NavDrawer extends StatelessWidget {
                 title: Text("Online Support"),
                 onTap: () {
                   Navigator.pop(context);
-                  print("About Clicked");
                 },
               ),
               ListTile(
