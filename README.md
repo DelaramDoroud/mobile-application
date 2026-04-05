@@ -23,48 +23,48 @@ The project focuses on delivering a practical, user-centered tourism application
 ## 📱 Smart Travel App – UI Screens
 
 ### 🏠 Home Screen
-![Home Screen](./images/Screenshot 2026-04-05 181539.png)
+![Home Screen](./images/home_screen.png)
 
 A visually engaging home screen that introduces users to travel planning. It highlights recommended transports, destinations, and tours.
 
 ---
 
 ### ✨ Smart Travel Planner
-![Planner Screen](./images/Screenshot 2026-04-05 181612.png)
+![Planner Screen](./images/planner.png)
 
 An intelligent planning interface where users can input trip details such as origin, destination, budget, and duration to generate a personalized travel plan.
 
 ---
 
-### 🏨 Accommodation Finder – Stay Booking
-![Accommodation Screen](./images/Screenshot 2026-04-05 181626.png)
+### 🏨 Accommodation Finder
+![Accommodation Screen](./images/accomodation.png)
 
 A clean and user-friendly screen that allows users to search and filter accommodations by type, destination, and check-in date.
 
 ---
 
-### 🌄 Tours & Experiences – Exploration
-![Tours Screen](./images/Screenshot 2026-04-05 181713.png)
+### 🌄 Tours list
+![Tours Screen](./images/tour_list.png)
 
 A list of tours available on the Tour Finder page.
 
 ---
 
-### 📋 Navigation Menu – User Dashboard
-![Menu Screen](./images/Screenshot 2026-04-05 181727.png)
+### 📋 Navigation Menu
+![Menu Screen](./images/nav_menu.png)
 
 A side navigation menu providing quick access to important sections such as reservations, attractions, history, support, and more.
 
 ---
 
-### 📍 Tourist Attractions – Destination Explorer
-![Attractions Screen](./images/Screenshot 2026-04-05 181751.png)
+### 📍 Tourist Attractions
+![Attractions Screen](./images/attractions.png)
 
 An exploration screen where users can browse attractions by destination and category, with ratings, descriptions, and pricing details.
 
 ---
 
-### ℹ️ About Us – App Overview
-![About Screen](./images/Screenshot 2026-04-05 181836.png)
+### ℹ️ About Us
+![About Screen](./images/about_me.png)
 
 An informational page presenting the app’s mission, vision, values, and key statistics to build user trust and clarity.
