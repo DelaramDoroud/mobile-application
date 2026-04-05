@@ -1,13 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:tourism_app/auth/auth_gate.dart';
-
-import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  try {
+    await Firebase.initializeApp();
+    debugPrint('Firebase initialized from native Android config');
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
+
   runApp(const MyApp());
 }
 
