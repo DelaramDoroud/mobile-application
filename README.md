@@ -8,10 +8,7 @@ The application uses Firebase services to store and manage travel-related data, 
 
 ## Developer
 
-**Delaram Doroudgarian**  
-Student ID: **5881909**  
-Email: **delaramdoroud82@gmail.com**  
-Course: **Mobile Development**
+**Delaram Doroudgarian**
 
 ---
 
@@ -628,10 +625,3 @@ A full admin dashboard could be developed to manage travel data such as:
 - Attractions
 
 This would allow administrators to add, edit, and remove travel content through a user interface instead of manually updating Firestore or seed data.
-
----
-
-## References
-
-- [Flutter Documentation](https://flutter.dev/)
-- [Firebase Documentation](https://firebase.google.com/docs)
