@@ -441,7 +441,7 @@ class _ReservePageState extends State<ReservePage> {
           const SizedBox(height: 18),
           Row(
             children: [
-              if (!_isAccomodation)
+              if (_isTransport)
                 Expanded(
                   child: PopupMenu(
                     destinations: _destItems$,
@@ -459,14 +459,11 @@ class _ReservePageState extends State<ReservePage> {
                     },
                   ),
                 ),
-              if (!_isAccomodation) const SizedBox(width: 12),
+              if (_isTransport) const SizedBox(width: 12),
               Expanded(
                 child: PopupMenu(
                   destinations: _destItems$,
-                  title:
-                      _isAccomodation
-                          ? 'Choose destination'
-                          : 'Select destination',
+                  title: _isAccomodation ? 'Choose destination' : 'Select City',
                   currentDestId: _selectedDestinationId,
                   borderRadius: BorderRadius.circular(18),
                   hintCoolor: AppColors.muted,
@@ -730,6 +727,7 @@ class _ReservePageState extends State<ReservePage> {
           final date = DateFormat(
             'd MMM',
           ).format(t.schedule['departAt'].toDate());
+          final transportNumber = _transportNumberLabel(t);
           return DetailsFrame(
             id: t.id,
             imagePath: t.images.isNotEmpty ? t.images[0] : 'images/pic6.jpg',
@@ -742,6 +740,8 @@ class _ReservePageState extends State<ReservePage> {
                 '${_vehicleDisplayName(t.mode)} ticket operated by ${t.company.isEmpty ? 'local partner' : t.company}.',
             images: t.images,
             remainingCapacity: t.remainingCapacity,
+            itemTypeLabel: transportNumber,
+            transportTickets: [_transportTicketMap(t)],
             price: '$price - $date',
             roundTrip: _roundTrip,
             returnDate: _returnDate,
@@ -869,6 +869,16 @@ class _ReservePageState extends State<ReservePage> {
     final total = outbound.basePrice + returning.basePrice;
     final currency = outbound.currency == 'USD' ? r'$' : outbound.currency;
     return '$currency $total';
+  }
+
+  String _transportNumberLabel(Transport transport) {
+    if ((transport.flightNumber ?? '').isNotEmpty) {
+      return transport.flightNumber!;
+    }
+    if ((transport.trainNumber ?? '').isNotEmpty) {
+      return transport.trainNumber!;
+    }
+    return '';
   }
 
   DateTime? _transportDate(Transport transport) {

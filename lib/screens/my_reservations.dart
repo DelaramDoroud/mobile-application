@@ -371,11 +371,43 @@ class ReservationHistoryPage extends StatelessWidget {
   }
 }
 
+class _BookedSnackBarContent extends StatelessWidget {
+  const _BookedSnackBarContent({required this.navigator});
+
+  final NavigatorState navigator;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.check, color: Colors.white),
+        const SizedBox(width: 10),
+        const Expanded(child: Text('Successfully booked in History')),
+        TextButton(
+          onPressed: () {
+            navigator.push(
+              MaterialPageRoute(builder: (_) => const ReservationHistoryPage()),
+            );
+          },
+          child: const Text(
+            'Open',
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 Future<void> _markReservationBooked(
   BuildContext context,
   QueryDocumentSnapshot<Map<String, dynamic>> doc,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
+  final navigator = Navigator.of(context);
   try {
     final data = doc.data();
     final trackingCode = _trackingCodeFor(doc.id, data);
@@ -433,9 +465,7 @@ Future<void> _markReservationBooked(
       }
 
       messenger.showSnackBar(
-        SnackBar(
-          content: Text('Successfully booked. Tracking code: $trackingCode'),
-        ),
+        SnackBar(content: _BookedSnackBarContent(navigator: navigator)),
       );
       return;
     }
@@ -447,9 +477,7 @@ Future<void> _markReservationBooked(
     }, SetOptions(merge: true));
 
     messenger.showSnackBar(
-      SnackBar(
-        content: Text('Reservation booked. Tracking code: $trackingCode'),
-      ),
+      SnackBar(content: _BookedSnackBarContent(navigator: navigator)),
     );
   } catch (error) {
     messenger.showSnackBar(
