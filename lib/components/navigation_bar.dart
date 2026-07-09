@@ -163,7 +163,7 @@ class _NavBarState extends State<NavBar> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.travel_explore, size: 25),
-                label: "Smart Travel",
+                label: "Planner",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.home, size: 25),

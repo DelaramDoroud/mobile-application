@@ -143,8 +143,10 @@ class AppTheme {
         selectedItemColor: AppColors.white,
         unselectedItemColor: Color(0xB3FFFFFF),
         type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: TextStyle(fontSize: 11),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
       ),
       drawerTheme: const DrawerThemeData(backgroundColor: AppColors.white),
       cardTheme: CardThemeData(
