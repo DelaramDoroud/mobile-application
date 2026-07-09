@@ -54,6 +54,7 @@ class HomeScreen extends StatelessWidget {
                 final price =
                     '${transport.currency == "USD" ? r"$" : transport.currency} ${transport.basePrice}';
                 final date = _transportDateText(transport);
+                final transportNumber = _transportNumberLabel(transport);
 
                 return DetailsFrame(
                   id: transport.id,
@@ -70,6 +71,8 @@ class HomeScreen extends StatelessWidget {
                       '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
                   images: transport.images,
                   remainingCapacity: transport.remainingCapacity,
+                  itemTypeLabel: transportNumber,
+                  transportTickets: [_transportTicketMap(transport)],
                   price: date.isEmpty ? price : '$price - $date',
                   color: const Color(0xFF8BC8F3),
                 );
@@ -295,6 +298,47 @@ String _transportDateText(Transport transport) {
   if (value == null) return '';
   final date = value is DateTime ? value : value.toDate();
   return DateFormat('d MMM').format(date);
+}
+
+String _transportNumberLabel(Transport transport) {
+  if ((transport.flightNumber ?? '').isNotEmpty) {
+    return transport.flightNumber!;
+  }
+  if ((transport.trainNumber ?? '').isNotEmpty) {
+    return transport.trainNumber!;
+  }
+  return '';
+}
+
+Map<String, dynamic> _transportTicketMap(Transport transport) {
+  final value = transport.schedule['departAt'];
+  final date =
+      value == null
+          ? null
+          : value is DateTime
+          ? value
+          : value.toDate();
+
+  return {
+    'id': transport.id,
+    'title': transport.mode.toUpperCase(),
+    'mode': transport.mode,
+    'company': transport.company,
+    'flightNumber': transport.flightNumber,
+    'trainNumber': transport.trainNumber,
+    'origin': transport.from['city']?.toString(),
+    'destination': transport.to['city']?.toString(),
+    'relatedDestinationId': transport.to['code']?.toString(),
+    'price': transport.basePrice,
+    'currency': transport.currency == 'USD' ? r'$' : transport.currency,
+    'priceText':
+        '${transport.currency == 'USD' ? r'$' : transport.currency} ${transport.basePrice}',
+    'departAt': date,
+    'remainingCapacity': transport.remainingCapacity,
+    'description':
+        '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
+    'images': transport.images,
+  };
 }
 
 String _vehicleDisplayName(String mode) {

@@ -10,6 +10,7 @@ import 'package:tourism_app/utils/accommodation_availability.dart';
 import 'package:tourism_app/utils/directions_launcher.dart';
 import 'package:tourism_app/widgets/image_slideshow.dart';
 import 'package:tourism_app/widgets/user_reviews_section.dart';
+import 'package:tourism_app/screens/my_reservations.dart';
 
 class DetailsPage extends StatelessWidget {
   const DetailsPage({
@@ -1208,9 +1209,33 @@ class _BookingCtaRowState extends State<_BookingCtaRow> {
         .set(data, SetOptions(merge: true));
 
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Added to My Reservations!')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Text('Added to My Reservations'),
+            TextButton(
+              onPressed:
+                  () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyReservationsPage(),
+                      ),
+                    ),
+                  },
+              child: Text(
+                'Open',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

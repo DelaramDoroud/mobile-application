@@ -32,6 +32,7 @@ class DetailsFrame extends StatelessWidget {
     this.longitude,
     this.roundTrip = false,
     this.returnDate,
+    this.transportTickets,
     this.onTap,
     required this.price,
     required this.color,
@@ -63,6 +64,7 @@ class DetailsFrame extends StatelessWidget {
   final double? longitude;
   final bool roundTrip;
   final DateTime? returnDate;
+  final List<Map<String, dynamic>>? transportTickets;
   final VoidCallback? onTap;
   final String price;
   final Color color;
@@ -120,6 +122,7 @@ class DetailsFrame extends StatelessWidget {
                       longitude: longitude,
                       roundTrip: roundTrip,
                       returnDate: returnDate,
+                      transportTickets: transportTickets,
                       price: price,
                       ratingAvg: ratingAvg,
                     ),
