@@ -260,7 +260,7 @@ class FirestoreSeeder {
         },
         "availability": [
           {
-            "from": DateTime.utc(2026, 6, 1),
+            "from": DateTime.utc(2026, 7, 16),
             "to": DateTime.utc(2026, 12, 15),
             "rooms": rooms,
             "pricePerNight": pricePerNight,
@@ -825,8 +825,8 @@ class FirestoreSeeder {
         "includes": ["guide", "museum-ticket", "local-transport"],
         "difficulty": "easy",
         "dates": {
-          "startDate": DateTime.utc(2026, 6, 12, 9),
-          "endDate": DateTime.utc(2026, 6, 12),
+          "startDate": DateTime.utc(2026, 7, 16, 9),
+          "endDate": DateTime.utc(2026, 7, 16),
         },
         "images": [
           "images/tour_tehran_landmarks_bazaar_1.png",
@@ -859,8 +859,8 @@ class FirestoreSeeder {
         "includes": ["guide", "local-transport", "snack"],
         "difficulty": "moderate",
         "dates": {
-          "startDate": DateTime.utc(2026, 6, 14, 8),
-          "endDate": DateTime.utc(2026, 6, 14),
+          "startDate": DateTime.utc(2026, 7, 17, 8),
+          "endDate": DateTime.utc(2026, 7, 17),
         },
         "images": [
           "images/tour_tehran_darband_tochal_alborz_1.png",
@@ -891,8 +891,8 @@ class FirestoreSeeder {
         "includes": ["guide", "ticket", "local-transport"],
         "difficulty": "easy",
         "dates": {
-          "startDate": DateTime.utc(2026, 7, 8, 8),
-          "endDate": DateTime.utc(2026, 7, 8),
+          "startDate": DateTime.utc(2026, 7, 18, 8),
+          "endDate": DateTime.utc(2026, 7, 18),
         },
         "images": [
           "images/tour_shiraz_persepolis_marvdasht_1.jpg",
@@ -923,8 +923,8 @@ class FirestoreSeeder {
         "includes": ["guide", "ticket", "local-transport"],
         "difficulty": "easy",
         "dates": {
-          "startDate": DateTime.utc(2026, 7, 10, 8, 30),
-          "endDate": DateTime.utc(2026, 7, 10),
+          "startDate": DateTime.utc(2026, 7, 19, 8, 30),
+          "endDate": DateTime.utc(2026, 7, 19),
         },
         "images": [
           "images/tour_shiraz_hafez_saadi_nasir_1.jpg",
@@ -1147,8 +1147,8 @@ class FirestoreSeeder {
         "includes": ["guide", "local-transport", "lunch", "tea-tasting"],
         "difficulty": "easy",
         "dates": {
-          "startDate": DateTime.utc(2026, 6, 20, 8),
-          "endDate": DateTime.utc(2026, 6, 20),
+          "startDate": DateTime.utc(2026, 7, 22, 8),
+          "endDate": DateTime.utc(2026, 7, 22),
         },
         "images": [
           "images/tour_rasht_lahijan_food_nature_1.jpg",
@@ -1178,8 +1178,8 @@ class FirestoreSeeder {
         "includes": ["guide", "local-transport", "lunch"],
         "difficulty": "moderate",
         "dates": {
-          "startDate": DateTime.utc(2026, 6, 22, 8),
-          "endDate": DateTime.utc(2026, 6, 22),
+          "startDate": DateTime.utc(2026, 7, 23, 8),
+          "endDate": DateTime.utc(2026, 7, 23),
         },
         "images": [
           "images/tour_rasht_masuleh_food_nature_1.jpg",
@@ -1852,8 +1852,8 @@ class FirestoreSeeder {
           final slot = departureSlots[i];
           final depart = DateTime.utc(
             2026,
-            6 + ((fromCity.length + toCity.length + i) % 5),
-            4 + ((fromCity.length * 3 + toCity.length + i * 5) % 22),
+            7 + ((fromCity.length + toCity.length + i) % 5),
+            16 + ((fromCity.length * 3 + toCity.length + i * 5) % 12),
             slot[0],
             slot[1],
           );
