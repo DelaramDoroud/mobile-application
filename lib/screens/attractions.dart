@@ -22,7 +22,12 @@ class _AttractionsState extends State<Attractions> {
   late Stream<List<Attraction>> _attractions$;
   late Stream<List<Destination>> _destinations$;
 
-  final List<String> _categories = ['nature', 'culture', 'history'];
+  final List<String> _categories = [
+    'nature',
+    'culture',
+    'history',
+    'point of interest',
+  ];
 
   @override
   void initState() {
@@ -42,7 +47,9 @@ class _AttractionsState extends State<Attractions> {
         )
         .map(
           (list) =>
-              list.map((m) => Attraction.fromMap(m['id'] as String, m)).toList(),
+              list
+                  .map((m) => Attraction.fromMap(m['id'] as String, m))
+                  .toList(),
         );
   }
 
@@ -57,7 +64,10 @@ class _AttractionsState extends State<Attractions> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.surface, AppColors.surfaceStrong.withOpacity(0.75)],
+            colors: [
+              AppColors.surface,
+              AppColors.surfaceStrong.withOpacity(0.75),
+            ],
           ),
         ),
         child: SafeArea(
@@ -190,8 +200,10 @@ class _AttractionsState extends State<Attractions> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AttractionDetailsPage(attraction: attraction),
+                                builder:
+                                    (_) => AttractionDetailsPage(
+                                      attraction: attraction,
+                                    ),
                               ),
                             );
                           },
@@ -215,7 +227,9 @@ class _AttractionsState extends State<Attractions> {
                                     top: Radius.circular(24),
                                   ),
                                   child: Image.asset(
-                                    'images/pic12.jpg',
+                                    attraction.images.isNotEmpty
+                                        ? attraction.images[0]
+                                        : 'assets/images/placeholder.png',
                                     height: 170,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -224,13 +238,16 @@ class _AttractionsState extends State<Attractions> {
                                 Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Wrap(
                                         spacing: 8,
                                         runSpacing: 8,
                                         children: [
-                                          _MiniTag(label: attraction.destinationName),
+                                          _MiniTag(
+                                            label: attraction.destinationName,
+                                          ),
                                           _MiniTag(label: attraction.category),
                                         ],
                                       ),
@@ -265,9 +282,10 @@ class _AttractionsState extends State<Attractions> {
                                           const Spacer(),
                                           Text(
                                             '\$ ${attraction.ticketPrice}',
-                                            style: textTheme.titleMedium?.copyWith(
-                                              color: AppColors.primary,
-                                            ),
+                                            style: textTheme.titleMedium
+                                                ?.copyWith(
+                                                  color: AppColors.primary,
+                                                ),
                                           ),
                                         ],
                                       ),

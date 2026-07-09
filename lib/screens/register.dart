@@ -17,6 +17,8 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _SurnameCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
@@ -28,6 +30,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
+    _nameCtrl.dispose();
+    _SurnameCtrl.dispose();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
@@ -45,16 +49,22 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
-
+      final name = _nameCtrl.text.trim();
+      final surname = _SurnameCtrl.text.trim();
       final username = _usernameCtrl.text.trim();
       await cred.user?.updateDisplayName(username);
 
-      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-        'uid': cred.user!.uid,
-        'email': _emailCtrl.text.trim(),
-        'username': username,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+            'uid': cred.user!.uid,
+            'name': name,
+            'surname': surname,
+            'email': _emailCtrl.text.trim(),
+            'username': username,
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
 
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -77,7 +87,9 @@ class _RegisterPageState extends State<RegisterPage> {
           msg = e.message ?? e.code;
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -121,12 +133,46 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Set up your easyTrip profile once and keep every trip in one consistent place.',
+                          'Set up your Smart Travel profile once and keep every trip in one consistent place.',
                           style: textTheme.bodyMedium?.copyWith(
                             color: AppColors.muted,
                             height: 1.5,
                           ),
                           textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 28),
+                        InputFields(
+                          controller: _nameCtrl,
+                          hint_text: 'Name',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.badge_outlined,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Name is empty';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InputFields(
+                          controller: _SurnameCtrl,
+                          hint_text: 'Surname',
+                          borderRadius: BorderRadius.circular(20),
+                          hintCoolor: AppColors.muted,
+                          fontSize: 16,
+                          fillColor: AppColors.surfaceStrong.withOpacity(0.85),
+                          borderSide: BorderSide.none,
+                          icon: Icons.contacts_outlined,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Surname is empty';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 28),
                         InputFields(
@@ -137,7 +183,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           fontSize: 16,
                           fillColor: AppColors.surfaceStrong.withOpacity(0.85),
                           borderSide: BorderSide.none,
-                          icon: Icons.person_outline_rounded,
+                          icon: Icons.alternate_email_rounded,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
                               return 'Username is empty';

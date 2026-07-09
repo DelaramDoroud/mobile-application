@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,7 @@ import 'package:tourism_app/data/firestore_repo.dart';
 import 'package:tourism_app/models/destination_model.dart';
 import 'package:tourism_app/models/tour_model.dart';
 import 'package:tourism_app/models/transportation_model.dart';
+import 'package:tourism_app/screens/details_page.dart';
 
 import '../models/accommodation_model.dart';
 import '../theme/app_theme.dart';
@@ -35,6 +37,10 @@ class _ReservePageState extends State<ReservePage> {
   String? _selectedDestinationId;
   String? _selectedOriginId;
   DateTime? _departureDate;
+  DateTime? _returnDate;
+  bool _roundTrip = false;
+  Transport? _selectedOutboundTransport;
+  Transport? _selectedReturnTransport;
   late final List<bool> _selectedChips;
   final List<String> _selectedType = [];
 
@@ -42,21 +48,28 @@ class _ReservePageState extends State<ReservePage> {
     Icons.directions_bus,
     Icons.train,
     Icons.flight,
-    Icons.directions_boat,
+    Icons.local_taxi,
   ];
   final List<String> _accomodations = [
-    'Villa',
-    'Apartment',
     'Hotel',
-    'Eco-Lodges',
+    'Guesthouse',
+    'Apartment',
+    'Eco Lodge',
   ];
-  final List<String> _tours = ['Nature', 'Culture', 'History', 'Adventure'];
+  final List<String> _tours = [
+    'Nature',
+    'City',
+    'Culture',
+    'History',
+    'Adventure',
+  ];
   final List<String> _sortOptions = ['Price', 'Date'];
 
   late bool _isAccomodation;
   late bool _isTransport;
   late Stream<List<Accommodation>> _accItems$;
   late Stream<List<Transport>> _trItems$;
+  late Stream<List<Transport>> _returnTrItems$;
   late Stream<List<Tour>> _tourItems$;
   late Stream<List<Destination>> _destItems$;
   late String _currentSort;
@@ -66,18 +79,26 @@ class _ReservePageState extends State<ReservePage> {
     super.initState();
     _isAccomodation = widget.accomodations;
     _isTransport = widget.transport;
-    _selectedChips = List<bool>.filled(5, false);
+    _selectedChips = List<bool>.filled(_activeFilterCount, false);
     _currentSort = _initialSort;
 
     _destItems$ = _repo.streamDestinations().map(
       (list) =>
           list.map((m) => Destination.fromMap(m['id'] as String, m)).toList(),
     );
-    _accItems$ = _repo.streamAccommodations().map(
-      (list) =>
-          list.map((m) => Accommodation.fromMap(m['id'] as String, m)).toList(),
-    );
+    _accItems$ = _repo
+        .streamAccommodations(sortBy: 'price')
+        .map(
+          (list) =>
+              list
+                  .map((m) => Accommodation.fromMap(m['id'] as String, m))
+                  .toList(),
+        );
     _trItems$ = _repo.streamTransports().map(
+      (list) =>
+          list.map((m) => Transport.fromMap(m['id'] as String, m)).toList(),
+    );
+    _returnTrItems$ = _repo.streamTransports().map(
       (list) =>
           list.map((m) => Transport.fromMap(m['id'] as String, m)).toList(),
     );
@@ -95,14 +116,18 @@ class _ReservePageState extends State<ReservePage> {
     final fromId = _selectedOriginId;
     final types = _selectedType;
     final startDate = _departureDate;
+    final returnDate = _returnDate;
 
     setState(() {
+      _selectedOutboundTransport = null;
+      _selectedReturnTransport = null;
+
       _accItems$ = _repo
           .streamAccommodations(
             destinationId: destId,
             types: _isAccomodation && types.isNotEmpty ? types : null,
             startDate: startDate,
-            sortBy: _currentSort == 'Date' ? 'date' : 'price',
+            sortBy: 'price',
           )
           .map(
             (list) =>
@@ -117,7 +142,22 @@ class _ReservePageState extends State<ReservePage> {
             toCode: destId,
             modes: _isTransport && types.isNotEmpty ? types : null,
             startDate: startDate,
-            sortBy: _currentSort == 'Date' ? 'date' : 'price',
+            sortBy: _currentSort == 'Price' ? 'basePrice' : 'date',
+          )
+          .map(
+            (list) =>
+                list
+                    .map((m) => Transport.fromMap(m['id'] as String, m))
+                    .toList(),
+          );
+
+      _returnTrItems$ = _repo
+          .streamTransports(
+            fromCode: destId,
+            toCode: fromId,
+            modes: _isTransport && types.isNotEmpty ? types : null,
+            startDate: returnDate,
+            sortBy: _currentSort == 'Price' ? 'basePrice' : 'date',
           )
           .map(
             (list) =>
@@ -250,8 +290,8 @@ class _ReservePageState extends State<ReservePage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.12),
-                  mode.darkAccent.withOpacity(0.82),
+                  Colors.black.withValues(alpha: 0.12),
+                  mode.darkAccent.withValues(alpha: 0.82),
                 ],
               ),
             ),
@@ -276,7 +316,7 @@ class _ReservePageState extends State<ReservePage> {
                   child: Text(
                     mode.subtitle,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.white.withOpacity(0.9),
+                      color: AppColors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -296,7 +336,7 @@ class _ReservePageState extends State<ReservePage> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: mode.accent.withOpacity(0.16),
+            color: mode.accent.withValues(alpha: 0.16),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -330,8 +370,9 @@ class _ReservePageState extends State<ReservePage> {
                     _selectedChips[index] = !_selectedChips[index];
                     final type = _filterValue(index);
                     if (_selectedChips[index]) {
-                      if (!_selectedType.contains(type))
+                      if (!_selectedType.contains(type)) {
                         _selectedType.add(type);
+                      }
                     } else {
                       _selectedType.remove(type);
                     }
@@ -346,14 +387,14 @@ class _ReservePageState extends State<ReservePage> {
                   decoration: BoxDecoration(
                     color:
                         selected
-                            ? mode.accent.withOpacity(0.18)
+                            ? mode.accent.withValues(alpha: 0.18)
                             : AppColors.surface,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color:
                           selected
-                              ? mode.darkAccent.withOpacity(0.35)
-                              : AppColors.primary.withOpacity(0.08),
+                              ? mode.darkAccent.withValues(alpha: 0.35)
+                              : AppColors.primary.withValues(alpha: 0.08),
                     ),
                   ),
                   child:
@@ -442,11 +483,43 @@ class _ReservePageState extends State<ReservePage> {
             ],
           ),
           const SizedBox(height: 12),
-          DateFields(
-            hint_text: _isAccomodation ? 'Check-in date' : 'Departure date',
-            onDateSelected: (d) => setState(() => _departureDate = d),
-            onCleared: () => setState(() => _departureDate = null),
-          ),
+          _isAccomodation
+              ? const SizedBox.shrink()
+              : Column(
+                children: [
+                  DateFields(
+                    hint_text: 'Departure date',
+                    onDateSelected: (d) => setState(() => _departureDate = d),
+                    onCleared: () => setState(() => _departureDate = null),
+                  ),
+                  if (_isTransport) ...[
+                    const SizedBox(height: 12),
+                    _RoundTripSelector(
+                      enabled: _roundTrip,
+                      accent: mode.accent,
+                      darkAccent: mode.darkAccent,
+                      returnDate: _returnDate,
+                      onEnabledChanged: (value) {
+                        setState(() {
+                          _roundTrip = value;
+                          _selectedOutboundTransport = null;
+                          _selectedReturnTransport = null;
+                          if (!value) _returnDate = null;
+                        });
+                        onSearch();
+                      },
+                      onReturnDateSelected: (date) {
+                        setState(() => _returnDate = date);
+                        onSearch();
+                      },
+                      onReturnDateCleared: () {
+                        setState(() => _returnDate = null);
+                        onSearch();
+                      },
+                    ),
+                  ],
+                ],
+              ),
         ],
       ),
     );
@@ -486,7 +559,10 @@ class _ReservePageState extends State<ReservePage> {
     return _tours[index];
   }
 
-  String _filterValue(int index) => _filterLabel(index).toLowerCase();
+  String _filterValue(int index) {
+    final label = _filterLabel(index).toLowerCase();
+    return label.replaceAll(' ', '-');
+  }
 
   Widget _resultSortBar(BuildContext context, _ReservationVisuals mode) {
     return Container(
@@ -496,7 +572,7 @@ class _ReservePageState extends State<ReservePage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -514,7 +590,7 @@ class _ReservePageState extends State<ReservePage> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: mode.accent.withOpacity(0.15),
+                  color: mode.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
@@ -533,52 +609,56 @@ class _ReservePageState extends State<ReservePage> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          PopupMenuButton<String>(
-            key: _menuKey,
-            onSelected: (val) {
-              setState(() => _currentSort = val);
-              onSearch();
-            },
-            color: AppColors.white,
-            surfaceTintColor: AppColors.white,
-            itemBuilder: (context) {
-              return _sortOptions
-                  .map((e) => PopupMenuItem<String>(value: e, child: Text(e)))
-                  .toList();
-            },
-            child: InkWell(
-              onTap: _openMenu,
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: mode.accent.withOpacity(0.25)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _currentSort,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: mode.darkAccent,
-                        fontWeight: FontWeight.w700,
+          if (!_isAccomodation) ...[
+            const SizedBox(width: 10),
+            PopupMenuButton<String>(
+              key: _menuKey,
+              onSelected: (val) {
+                setState(() => _currentSort = val);
+                onSearch();
+              },
+              color: AppColors.white,
+              surfaceTintColor: AppColors.white,
+              itemBuilder: (context) {
+                return _sortOptions
+                    .map((e) => PopupMenuItem<String>(value: e, child: Text(e)))
+                    .toList();
+              },
+              child: InkWell(
+                onTap: _openMenu,
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: mode.accent.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _currentSort,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: mode.darkAccent,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: mode.darkAccent,
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: mode.darkAccent,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -587,14 +667,15 @@ class _ReservePageState extends State<ReservePage> {
   Widget _resultsSliver(BuildContext context) {
     if (_isAccomodation) {
       return GenericGridView<Accommodation>(
+        crossAxisCount: 1,
         stream: _accItems$,
-        childAspectRatio: 0.72,
+        childAspectRatio: 1.5,
         itemBuilder: (a) {
           final priceText =
               '${a.currency == 'USD' ? '\$' : '\$'} ${a.pricePerNight}';
           return DetailsFrame(
             id: a.id,
-            imagePath: 'images/pic10.jpg',
+            imagePath: a.images.isNotEmpty ? a.images[0] : 'images/pic8.jpg',
             title: a.name,
             type: 'accommodation',
             relatedDestinationId: a.destinationId,
@@ -603,7 +684,13 @@ class _ReservePageState extends State<ReservePage> {
             beds: a.beds,
             bathrooms: a.bathrooms,
             amenities: a.amenities,
+            roomOptions: a.roomOptions,
+            images: a.images,
+            address: a.address,
+            latitude: a.latitude,
+            longitude: a.longitude,
             ratingAvg: a.ratingAvg,
+            itemTypeLabel: _displayType(a.type),
             destination: a.destinationName,
             price: '$priceText - per night',
             description: a.description,
@@ -614,9 +701,29 @@ class _ReservePageState extends State<ReservePage> {
     }
 
     if (_isTransport) {
+      if (_roundTrip) {
+        return SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _RoundTripTransportResults(
+              outboundStream: _trItems$,
+              returnStream: _returnTrItems$,
+              selectedOutbound: _selectedOutboundTransport,
+              onOutboundSelected:
+                  (transport) =>
+                      setState(() => _selectedOutboundTransport = transport),
+              onReturnSelected: (transport) {
+                _selectedReturnTransport = transport;
+                _openRoundTripDetails();
+              },
+            ),
+          ),
+        );
+      }
+
       return GenericGridView<Transport>(
         stream: _trItems$,
-        childAspectRatio: 0.68,
+        childAspectRatio: 0.7,
         itemBuilder: (t) {
           final title = t.mode.toUpperCase();
           final price = "${t.currency == "USD" ? '\$' : '\$'} ${t.basePrice}";
@@ -625,13 +732,19 @@ class _ReservePageState extends State<ReservePage> {
           ).format(t.schedule['departAt'].toDate());
           return DetailsFrame(
             id: t.id,
-            imagePath: 'images/pic6.jpg',
+            imagePath: t.images.isNotEmpty ? t.images[0] : 'images/pic6.jpg',
             title: title,
             type: 'transport',
             relatedDestinationId: t.to['code'],
             origin: t.from['city'],
             destination: t.to['city'],
+            description:
+                '${_vehicleDisplayName(t.mode)} ticket operated by ${t.company.isEmpty ? 'local partner' : t.company}.',
+            images: t.images,
+            remainingCapacity: t.remainingCapacity,
             price: '$price - $date',
+            roundTrip: _roundTrip,
+            returnDate: _returnDate,
             color: const Color(0xFFC8E4F2),
           );
         },
@@ -639,22 +752,36 @@ class _ReservePageState extends State<ReservePage> {
     }
 
     return GenericGridView<Tour>(
+      crossAxisCount: 1,
       stream: _tourItems$,
-      childAspectRatio: 0.62,
+      childAspectRatio: 1.4,
       itemBuilder: (tour) {
         final priceText =
             '${tour.currency == "USD" ? '\$' : '\$'} ${tour.price}';
-        final date = DateFormat(
-          'd MMM',
-        ).format(tour.dates['startDate'].toDate());
+        final startDate = _dateFromMap(tour.dates, 'startDate');
+        final date =
+            startDate == null
+                ? 'Flexible'
+                : DateFormat('d MMM').format(startDate);
+        final description = _tourDescriptionWithDepartureTime(
+          tour.description,
+          startDate,
+        );
         return DetailsFrame(
           id: tour.id,
-          imagePath: 'images/pic11.webp',
+          imagePath:
+              tour.images.isNotEmpty ? tour.images[0] : 'images/pic11.webp',
           title: tour.name,
           type: 'tour',
           origin: tour.origin['name'],
           destination: tour.destination['name'],
-          description: tour.description,
+          description: description,
+          itemTypeLabel: _displayTypes(tour.types, fallback: tour.type),
+          tripScope: tour.tripScope,
+          tourDurationDays: tour.durationDays,
+          remainingCapacity: tour.remainingCapacity,
+          gearSuggestions: tour.gearSuggestions,
+          images: tour.images,
           price: '$priceText - $date',
           ratingAvg: tour.ratingAvg,
           color: const Color(0xFFCBE7D4),
@@ -662,11 +789,335 @@ class _ReservePageState extends State<ReservePage> {
       },
     ).buildSliver(context);
   }
+
+  void _openRoundTripDetails() {
+    final outbound = _selectedOutboundTransport;
+    final returning = _selectedReturnTransport;
+    if (outbound == null || returning == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select both tickets first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => DetailsPage(
+              id: '${outbound.id}_${returning.id}',
+              title: 'Round Trip Tickets',
+              type: 'transport',
+              relatedDestinationId: outbound.to['code']?.toString(),
+              origin: outbound.from['city']?.toString(),
+              destination: outbound.to['city']?.toString(),
+              description:
+                  'Selected outbound and return transportation tickets.',
+              images: _combinedTransportImages(outbound, returning),
+              price: _transportTotalPriceText(outbound, returning),
+              remainingCapacity:
+                  outbound.remainingCapacity < returning.remainingCapacity
+                      ? outbound.remainingCapacity
+                      : returning.remainingCapacity,
+              roundTrip: true,
+              returnDate: _transportDate(returning),
+              transportTickets: [
+                _transportTicketMap(outbound),
+                _transportTicketMap(returning),
+              ],
+            ),
+      ),
+    );
+  }
+
+  List<dynamic> _combinedTransportImages(
+    Transport outbound,
+    Transport returning,
+  ) {
+    final images = <dynamic>[...outbound.images, ...returning.images];
+    return images.isEmpty ? const ['images/pic6.jpg'] : images;
+  }
+
+  Map<String, dynamic> _transportTicketMap(Transport transport) {
+    final date = _transportDate(transport);
+    return {
+      'id': transport.id,
+      'title': transport.mode.toUpperCase(),
+      'mode': transport.mode,
+      'company': transport.company,
+      'flightNumber': transport.flightNumber,
+      'trainNumber': transport.trainNumber,
+      'origin': transport.from['city']?.toString(),
+      'destination': transport.to['city']?.toString(),
+      'relatedDestinationId': transport.to['code']?.toString(),
+      'price': transport.basePrice,
+      'currency': transport.currency == 'USD' ? r'$' : transport.currency,
+      'priceText':
+          '${transport.currency == 'USD' ? r'$' : transport.currency} ${transport.basePrice}',
+      'departAt': date == null ? null : Timestamp.fromDate(date),
+      'remainingCapacity': transport.remainingCapacity,
+      'description':
+          '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
+      'images': transport.images,
+    };
+  }
+
+  String _transportTotalPriceText(Transport outbound, Transport returning) {
+    final total = outbound.basePrice + returning.basePrice;
+    final currency = outbound.currency == 'USD' ? r'$' : outbound.currency;
+    return '$currency $total';
+  }
+
+  DateTime? _transportDate(Transport transport) {
+    final value = transport.schedule['departAt'];
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return value.toDate();
+  }
 }
 
 String _vehicleName(int i) {
-  const v = ['Bus', 'Train', 'Flight', 'Boat'];
+  const v = ['Bus', 'Train', 'Flight', 'Taxi'];
   return v[i];
+}
+
+class _RoundTripTransportResults extends StatelessWidget {
+  const _RoundTripTransportResults({
+    required this.outboundStream,
+    required this.returnStream,
+    required this.selectedOutbound,
+    required this.onOutboundSelected,
+    required this.onReturnSelected,
+  });
+
+  final Stream<List<Transport>> outboundStream;
+  final Stream<List<Transport>> returnStream;
+  final Transport? selectedOutbound;
+  final ValueChanged<Transport> onOutboundSelected;
+  final ValueChanged<Transport> onReturnSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (selectedOutbound == null)
+          _TransportSelectionSection(
+            title: 'Outbound ticket',
+            subtitle:
+                'Choose the first ticket, then select your return ticket.',
+            stream: outboundStream,
+            onSelected: onOutboundSelected,
+          )
+        else ...[
+          _SelectedOutboundBanner(transport: selectedOutbound!),
+          const SizedBox(height: 18),
+          _TransportSelectionSection(
+            title: 'Return ticket',
+            subtitle:
+                'Choose the second ticket to continue to the details page.',
+            stream: returnStream,
+            onSelected: onReturnSelected,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _SelectedOutboundBanner extends StatelessWidget {
+  const _SelectedOutboundBanner({required this.transport});
+
+  final Transport transport;
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = transport.currency == 'USD' ? r'$' : transport.currency;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFC8E4F2).withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF1F5D78).withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_rounded, color: Color(0xFF1F5D78)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Outbound selected: ${transport.mode.toUpperCase()} - $currency ${transport.basePrice}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransportSelectionSection extends StatelessWidget {
+  const _TransportSelectionSection({
+    required this.title,
+    required this.subtitle,
+    required this.stream,
+    required this.onSelected,
+  });
+
+  final String title;
+  final String subtitle;
+  final Stream<List<Transport>> stream;
+  final ValueChanged<Transport> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: 12),
+          StreamBuilder<List<Transport>>(
+            stream: stream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text('Error: ${snapshot.error}'),
+                );
+              }
+
+              final items = snapshot.data ?? const [];
+              if (items.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    'No tickets found',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                );
+              }
+
+              final width = MediaQuery.of(context).size.width;
+              final crossAxisCount = width > 900 ? 3 : 2;
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: items.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.7,
+                ),
+                itemBuilder: (context, index) {
+                  final transport = items[index];
+                  final title = transport.mode.toUpperCase();
+                  final price =
+                      '${transport.currency == 'USD' ? r'$' : transport.currency} ${transport.basePrice}';
+                  final date = _transportDateText(transport);
+
+                  return DetailsFrame(
+                    id: transport.id,
+                    imagePath:
+                        transport.images.isNotEmpty
+                            ? transport.images[0]
+                            : 'images/pic6.jpg',
+                    title: title,
+                    type: 'transport',
+                    relatedDestinationId: transport.to['code'],
+                    origin: transport.from['city'],
+                    destination: transport.to['city'],
+                    description:
+                        '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
+                    images: transport.images,
+                    price: date.isEmpty ? price : '$price - $date',
+                    color: const Color(0xFFC8E4F2),
+                    onTap: () => onSelected(transport),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _transportDateText(Transport transport) {
+  final value = transport.schedule['departAt'];
+  if (value == null) return '';
+  final date = value is DateTime ? value : value.toDate();
+  return DateFormat('d MMM yyyy').format(date);
+}
+
+String _vehicleDisplayName(String mode) {
+  if (mode == 'ship') return 'Ship';
+  return mode.isEmpty ? 'Transport' : mode[0].toUpperCase() + mode.substring(1);
+}
+
+String _displayType(String value) {
+  if (value.isEmpty) return '';
+  return value
+      .split(RegExp(r'[-_\s]+'))
+      .where((part) => part.isNotEmpty)
+      .map((part) => part[0].toUpperCase() + part.substring(1))
+      .join(' ');
+}
+
+String _displayTypes(List<dynamic> values, {String fallback = ''}) {
+  final labels =
+      values
+          .map((value) => value.toString())
+          .where((value) => value.isNotEmpty)
+          .map(_displayType)
+          .where((value) => value.isNotEmpty)
+          .toList();
+
+  if (labels.isEmpty) return _displayType(fallback);
+  return labels.join(', ');
+}
+
+DateTime? _dateFromMap(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  return value.toDate();
+}
+
+String _tourDescriptionWithDepartureTime(
+  String description,
+  DateTime? startDate,
+) {
+  if (startDate == null) return description;
+  final departureTime = DateFormat('HH:mm').format(startDate);
+  return '$description\nDeparture time: $departureTime';
 }
 
 class GenericGridView<T> extends StatelessWidget {
@@ -761,4 +1212,85 @@ class _ReservationVisuals {
   final Color accent;
   final Color darkAccent;
   final Color pageTint;
+}
+
+class _RoundTripSelector extends StatelessWidget {
+  const _RoundTripSelector({
+    required this.enabled,
+    required this.accent,
+    required this.darkAccent,
+    required this.returnDate,
+    required this.onEnabledChanged,
+    required this.onReturnDateSelected,
+    required this.onReturnDateCleared,
+  });
+
+  final bool enabled;
+  final Color accent;
+  final Color darkAccent;
+  final DateTime? returnDate;
+  final ValueChanged<bool> onEnabledChanged;
+  final ValueChanged<DateTime> onReturnDateSelected;
+  final VoidCallback onReturnDateCleared;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: enabled ? accent.withValues(alpha: 0.12) : AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color:
+              enabled ? darkAccent.withValues(alpha: 0.28) : Colors.transparent,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.sync_alt_rounded, color: darkAccent),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Round-trip ticket',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Switch(
+                value: enabled,
+                activeColor: darkAccent,
+                onChanged: onEnabledChanged,
+              ),
+            ],
+          ),
+          if (enabled) ...[
+            const SizedBox(height: 10),
+            DateFields(
+              hint_text: 'Return date',
+              onDateSelected: onReturnDateSelected,
+              onCleared: onReturnDateCleared,
+            ),
+            if (returnDate != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Selected return: ${returnDate!.day}/${returnDate!.month}/${returnDate!.year}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
 }

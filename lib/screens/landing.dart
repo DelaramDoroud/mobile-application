@@ -58,14 +58,20 @@ class _LandingPageState extends State<LandingPage> {
             ),
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 18,
+                ),
                 child: Column(
                   children: [
                     Expanded(
                       child: AnimatedSlide(
                         duration: const Duration(milliseconds: 900),
                         curve: Curves.easeOutCubic,
-                        offset: _animationStarted ? Offset.zero : const Offset(0, 0.08),
+                        offset:
+                            _animationStarted
+                                ? Offset.zero
+                                : const Offset(0, 0.08),
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 900),
                           opacity: _animationStarted ? 1 : 0,
@@ -73,7 +79,9 @@ class _LandingPageState extends State<LandingPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                constraints: const BoxConstraints(maxWidth: 420),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 420,
+                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(36),
                                   boxShadow: [
@@ -97,7 +105,7 @@ class _LandingPageState extends State<LandingPage> {
                               ),
                               const SizedBox(height: 28),
                               Text(
-                                'Welcome to easyTrip',
+                                'Welcome to Smart Travel',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.playfairDisplay(
                                   fontSize: screenWidth < 380 ? 34 : 40,
@@ -107,7 +115,9 @@ class _LandingPageState extends State<LandingPage> {
                               ),
                               const SizedBox(height: 12),
                               ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 440),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 440,
+                                ),
                                 child: Text(
                                   'Plan cleaner trips with a calmer palette, faster booking flow, and one place for transport, stays, and tours.',
                                   textAlign: TextAlign.center,
@@ -125,7 +135,8 @@ class _LandingPageState extends State<LandingPage> {
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 700),
                       curve: Curves.easeOut,
-                      offset: _showActions ? Offset.zero : const Offset(0, 0.15),
+                      offset:
+                          _showActions ? Offset.zero : const Offset(0, 0.15),
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 700),
                         opacity: _showActions ? 1 : 0,
@@ -212,7 +223,8 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background = filled ? AppColors.white : Colors.white.withOpacity(0.12);
+    final background =
+        filled ? AppColors.white : Colors.white.withOpacity(0.12);
     final foreground = filled ? AppColors.primary : AppColors.white;
 
     return InkWell(
@@ -223,16 +235,18 @@ class _ActionButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(22),
-          border: filled ? null : Border.all(color: Colors.white.withOpacity(0.28)),
-          boxShadow: filled
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ]
-              : null,
+          border:
+              filled ? null : Border.all(color: Colors.white.withOpacity(0.28)),
+          boxShadow:
+              filled
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ]
+                  : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -241,9 +255,9 @@ class _ActionButton extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               label,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: foreground,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: foreground),
             ),
           ],
         ),
@@ -264,10 +278,7 @@ class _GlowCircle extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }

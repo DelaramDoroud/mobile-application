@@ -32,6 +32,8 @@ class Attraction {
   String get destinationId => (destination['id'] ?? '').toString();
   String get destinationName => (destination['name'] ?? '').toString();
   String get address => (location['address'] ?? '').toString();
+  double? get latitude => (location['lat'] as num?)?.toDouble();
+  double? get longitude => (location['lng'] as num?)?.toDouble();
 
   factory Attraction.fromMap(String id, Map<String, dynamic> m) {
     return Attraction(

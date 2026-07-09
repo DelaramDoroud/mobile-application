@@ -8,6 +8,7 @@ import '../screens/about_us.dart';
 import '../screens/attractions.dart';
 import '../screens/home.dart';
 import '../screens/my_reservations.dart';
+import '../screens/online_support.dart';
 import '../screens/reservation.dart';
 import '../screens/smart_travel.dart';
 import '../theme/app_theme.dart';
@@ -196,9 +197,7 @@ class NavDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             margin: EdgeInsets.only(bottom: screenHeight * 0.04),
-            decoration: const BoxDecoration(
-              gradient: AppColors.heroGradient,
-            ),
+            decoration: const BoxDecoration(gradient: AppColors.heroGradient),
             child: Text(
               "Menu",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -213,8 +212,8 @@ class NavDrawer extends StatelessWidget {
               ListTile(
                 leading: Image.asset(
                   "images/myReservation_icon.png",
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                 ),
                 title: Text("My Reservations"),
                 onTap: () {
@@ -229,8 +228,8 @@ class NavDrawer extends StatelessWidget {
               ListTile(
                 leading: Image.asset(
                   "images/attraction_icon.png",
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                 ),
                 title: Text("Tourist Attractions"),
                 onTap: () {
@@ -243,30 +242,40 @@ class NavDrawer extends StatelessWidget {
               ListTile(
                 leading: Image.asset(
                   "images/history_icon.png",
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                 ),
                 title: Text("History"),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ReservationHistoryPage(),
+                    ),
+                  );
                 },
               ),
               ListTile(
                 leading: Image.asset(
                   "images/support_icon.png",
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                 ),
-                title: Text("Online Support"),
+                title: Text("Help & Support"),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OnlineSupportPage(),
+                    ),
+                  );
                 },
               ),
               ListTile(
                 leading: Image.asset(
                   "images/about_icon.png",
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                 ),
                 title: Text("About"),
                 onTap: () {

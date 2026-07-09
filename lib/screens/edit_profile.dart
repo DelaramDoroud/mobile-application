@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
 import '../components/input_fields.dart';
 import 'login.dart';
 
@@ -12,25 +13,47 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _pwdFormKey = GlobalKey<FormState>();
   final _profileFormKey = GlobalKey<FormState>();
+  final _pwdFormKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _surnameCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _currentPwdCtrl = TextEditingController();
   final _newPwdCtrl = TextEditingController();
   final _confirmPwdCtrl = TextEditingController();
+
   bool _isLoading = false;
-  // bool _showPwdFields = false;
-  bool _obscCur = true, _obscNew = true, _obscCnf = true;
+  bool _obscCur = true;
+  bool _obscNew = true;
+  bool _obscCnf = true;
 
   @override
   void initState() {
     super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
-    _usernameCtrl.text = user?.displayName ?? "";
+    if (user == null) return;
+
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+    final data = snapshot.data() ?? {};
+
+    if (!mounted) return;
+    _nameCtrl.text = data['name']?.toString() ?? '';
+    _surnameCtrl.text = data['surname']?.toString() ?? '';
+    _usernameCtrl.text = data['username']?.toString() ?? user.displayName ?? '';
   }
 
   @override
   void dispose() {
+    _nameCtrl.dispose();
+    _surnameCtrl.dispose();
     _usernameCtrl.dispose();
     _currentPwdCtrl.dispose();
     _newPwdCtrl.dispose();
@@ -46,13 +69,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
+      final name = _nameCtrl.text.trim();
+      final surname = _surnameCtrl.text.trim();
       final username = _usernameCtrl.text.trim();
 
-      // Auth displayName
       await user.updateDisplayName(username);
-
-      // Firestore
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'name': name,
+        'surname': surname,
         'username': username,
       }, SetOptions(merge: true));
 
@@ -62,9 +86,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Update failed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Update failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -89,7 +116,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         password: _currentPwdCtrl.text.trim(),
       );
       await user.reauthenticateWithCredential(cred);
-
       await user.updatePassword(_newPwdCtrl.text.trim());
 
       if (!mounted) return;
@@ -104,10 +130,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final msg =
-          (e.code == 'wrong-password')
+          e.code == 'wrong-password'
               ? 'Current password is incorrect'
               : e.message ?? 'Password update failed';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -125,39 +153,69 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Profile")),
+      appBar: AppBar(title: const Text('Edit Profile')),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            vertical: screenHeight * 0.15,
+            vertical: screenHeight * 0.08,
             horizontal: 20,
           ),
-
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Form(
-                key: _profileFormKey, // ✅ فرم پروفایل
-                child: InputFields(
-                  controller: _usernameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: "Username",
-                    border: OutlineInputBorder(),
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  hintCoolor: Colors.blueGrey,
-                  fontSize: 16,
-                  borderSide: BorderSide.none,
-                  icon: Icons.person,
-                  validator:
-                      (v) =>
-                          (v == null || v.trim().isEmpty)
-                              ? "Username required"
-                              : null,
+                key: _profileFormKey,
+                child: Column(
+                  children: [
+                    InputFields(
+                      controller: _nameCtrl,
+                      hint_text: 'Name',
+                      borderRadius: BorderRadius.circular(10),
+                      hintCoolor: Colors.blueGrey,
+                      fontSize: 16,
+                      borderSide: BorderSide.none,
+                      icon: Icons.badge_outlined,
+                      validator:
+                          (v) =>
+                              (v == null || v.trim().isEmpty)
+                                  ? 'Name required'
+                                  : null,
+                    ),
+                    const SizedBox(height: 15),
+                    InputFields(
+                      controller: _surnameCtrl,
+                      hint_text: 'Surname',
+                      borderRadius: BorderRadius.circular(10),
+                      hintCoolor: Colors.blueGrey,
+                      fontSize: 16,
+                      borderSide: BorderSide.none,
+                      icon: Icons.contacts_outlined,
+                      validator:
+                          (v) =>
+                              (v == null || v.trim().isEmpty)
+                                  ? 'Surname required'
+                                  : null,
+                    ),
+                    const SizedBox(height: 15),
+                    InputFields(
+                      controller: _usernameCtrl,
+                      hint_text: 'Username',
+                      borderRadius: BorderRadius.circular(10),
+                      hintCoolor: Colors.blueGrey,
+                      fontSize: 16,
+                      borderSide: BorderSide.none,
+                      icon: Icons.alternate_email_rounded,
+                      validator:
+                          (v) =>
+                              (v == null || v.trim().isEmpty)
+                                  ? 'Username required'
+                                  : null,
+                    ),
+                  ],
                 ),
               ),
-
+              const SizedBox(height: 24),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(
@@ -165,44 +223,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   color: Color.fromARGB(255, 57, 150, 105),
                 ),
                 title: const Text(
-                  "Change password",
+                  'Change password',
                   style: TextStyle(
                     color: Color.fromARGB(255, 57, 150, 105),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap:
-                    () => showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: const Text("Change Password"),
-                            content: _input_fields(ctx),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text("Cancel"),
-                              ),
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _changePassword,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(
-                                    255,
-                                    100,
-                                    233,
-                                    202,
-                                  ),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (ctx) => AlertDialog(
+                          title: const Text('Change Password'),
+                          content: _passwordFields(ctx),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _changePassword,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  100,
+                                  233,
+                                  202,
                                 ),
-                                child:
-                                    _isLoading
-                                        ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                        )
-                                        : const Text("Save"),
                               ),
-                            ],
-                          ),
-                    ),
+                              child:
+                                  _isLoading
+                                      ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                      )
+                                      : const Text('Save'),
+                            ),
+                          ],
+                        ),
+                  );
+                },
               ),
               const SizedBox(height: 30),
               SizedBox(
@@ -210,12 +269,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _saveChanges,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 100, 233, 202),
+                    backgroundColor: const Color.fromARGB(255, 100, 233, 202),
                   ),
                   child:
                       _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Save changes"),
+                          : const Text('Save changes'),
                 ),
               ),
               const SizedBox(height: 15),
@@ -224,9 +283,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: TextButton(
                   onPressed: _logout,
                   style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all(Colors.red),
+                    foregroundColor: WidgetStateProperty.all(Colors.red),
                   ),
-                  child: const Text("Log out"),
+                  child: const Text('Log out'),
                 ),
               ),
             ],
@@ -236,22 +295,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  _input_fields(context) {
+  Widget _passwordFields(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+
     return Form(
       key: _pwdFormKey,
-      child: Container(
+      child: SizedBox(
         height: screenHeight * 0.25,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             InputFields(
               controller: _currentPwdCtrl,
-              decoration: const InputDecoration(
-                labelText: "Current Password",
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
+              hint_text: 'Current Password',
+              obscureText: _obscCur,
               borderRadius: BorderRadius.circular(10),
               hintCoolor: Colors.blueGrey,
               fontSize: 16,
@@ -260,20 +317,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 icon: Icon(_obscCur ? Icons.visibility : Icons.visibility_off),
                 onPressed: () => setState(() => _obscCur = !_obscCur),
               ),
-
               validator:
                   (v) =>
                       (v == null || v.isEmpty)
-                          ? "Enter current password"
+                          ? 'Enter current password'
                           : null,
             ),
             InputFields(
               controller: _newPwdCtrl,
-              decoration: const InputDecoration(
-                labelText: "New Password",
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
+              hint_text: 'New Password',
+              obscureText: _obscNew,
               borderRadius: BorderRadius.circular(10),
               hintCoolor: Colors.blueGrey,
               fontSize: 16,
@@ -282,27 +335,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 icon: Icon(_obscNew ? Icons.visibility : Icons.visibility_off),
                 onPressed: () => setState(() => _obscNew = !_obscNew),
               ),
-
               validator: (v) {
-                if (v == null || v.isEmpty) {
-                  return "Enter new password";
-                }
-                if (v.length < 6) {
-                  return "At least 6 characters";
-                }
+                if (v == null || v.isEmpty) return 'Enter new password';
+                if (v.length < 6) return 'At least 6 characters';
                 if (v == _currentPwdCtrl.text.trim()) {
-                  return "New password must differ";
+                  return 'New password must differ';
                 }
                 return null;
               },
             ),
             InputFields(
               controller: _confirmPwdCtrl,
-              decoration: const InputDecoration(
-                labelText: "Confirm Password",
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
+              hint_text: 'Confirm Password',
+              obscureText: _obscCnf,
               borderRadius: BorderRadius.circular(10),
               hintCoolor: Colors.blueGrey,
               fontSize: 16,
@@ -313,8 +358,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               validator:
                   (v) =>
-                      (v != _newPwdCtrl.text.trim())
-                          ? "Passwords do not match"
+                      v != _newPwdCtrl.text.trim()
+                          ? 'Passwords do not match'
                           : null,
             ),
           ],

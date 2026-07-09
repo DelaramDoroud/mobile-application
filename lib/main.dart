@@ -2,16 +2,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:tourism_app/auth/auth_gate.dart';
 import 'theme/app_theme.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await Firebase.initializeApp();
-    debugPrint('Firebase initialized from native Android config');
-  } catch (e) {
-    debugPrint('Firebase init error: $e');
-  }
+  await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+  );
 
   runApp(const MyApp());
 }
@@ -25,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      title: 'easyTrip',
+      title: 'Smart Travel',
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
     );

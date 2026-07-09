@@ -78,7 +78,7 @@ class _SmartTravelState extends State<SmartTravel> {
             end: Alignment.bottomCenter,
             colors: [
               AppColors.surface,
-              AppColors.surfaceStrong.withOpacity(0.78),
+              AppColors.surfaceStrong.withValues(alpha: 0.78),
             ],
           ),
         ),
@@ -143,7 +143,7 @@ class _SmartTravelState extends State<SmartTravel> {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.14),
+            color: AppColors.primary.withValues(alpha: 0.14),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -161,8 +161,8 @@ class _SmartTravelState extends State<SmartTravel> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.14),
-                    AppColors.ink.withOpacity(0.84),
+                    Colors.black.withValues(alpha: 0.14),
+                    AppColors.ink.withValues(alpha: 0.84),
                   ],
                 ),
               ),
@@ -185,7 +185,7 @@ class _SmartTravelState extends State<SmartTravel> {
                   Text(
                     'Build a personalized trip with destination-aware timing, stay and transport recommendations, and a total cost estimate.',
                     style: textTheme.bodyLarge?.copyWith(
-                      color: AppColors.white.withOpacity(0.9),
+                      color: AppColors.white.withValues(alpha: 0.9),
                       height: 1.45,
                     ),
                   ),
@@ -206,7 +206,7 @@ class _SmartTravelState extends State<SmartTravel> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -265,8 +265,7 @@ class _SmartTravelState extends State<SmartTravel> {
                   borderRadius: BorderRadius.circular(20),
                   hintCoolor: AppColors.muted,
                   fontSize: 12,
-                  fillColor: AppColors.surfaceStrong.withOpacity(0.72),
-                  borderSide: BorderSide.none,
+                  decoration: _smartNumberFieldDecoration('Budget (\$)'),
                   keyboardType: TextInputType.number,
                   //icon: Icons.account_balance_wallet_outlined,
                 ),
@@ -279,8 +278,7 @@ class _SmartTravelState extends State<SmartTravel> {
                   borderRadius: BorderRadius.circular(20),
                   hintCoolor: AppColors.muted,
                   fontSize: 14,
-                  fillColor: AppColors.surfaceStrong.withOpacity(0.72),
-                  borderSide: BorderSide.none,
+                  decoration: _smartNumberFieldDecoration('Days'),
                   keyboardType: TextInputType.number,
                   //icon: Icons.calendar_month_outlined,
                 ),
@@ -293,8 +291,7 @@ class _SmartTravelState extends State<SmartTravel> {
                   borderRadius: BorderRadius.circular(20),
                   hintCoolor: AppColors.muted,
                   fontSize: 14,
-                  fillColor: AppColors.surfaceStrong.withOpacity(0.72),
-                  borderSide: BorderSide.none,
+                  decoration: _smartNumberFieldDecoration('People'),
                   keyboardType: TextInputType.number,
                   //icon: Icons.groups_rounded,
                 ),
@@ -357,8 +354,8 @@ class _SmartTravelState extends State<SmartTravel> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withOpacity(0.92),
-            AppColors.secondary.withOpacity(0.88),
+            AppColors.primary.withValues(alpha: 0.92),
+            AppColors.secondary.withValues(alpha: 0.88),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
@@ -378,7 +375,7 @@ class _SmartTravelState extends State<SmartTravel> {
                 ? 'No seasonal suggestion available for this destination yet.'
                 : 'Recommended months: ${seasons.join(', ')}. These months usually fit ${tags.isEmpty ? 'general travel' : tags.join(', ')} experiences best.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.white.withOpacity(0.9),
+              color: AppColors.white.withValues(alpha: 0.9),
               height: 1.5,
             ),
           ),
@@ -437,6 +434,14 @@ class _SmartTravelState extends State<SmartTravel> {
                   durationDays: _durationDays,
                   travelers: _travelers,
                 );
+                final transportPriceText =
+                    transport == null
+                        ? null
+                        : '${transport.currency == 'USD' ? r'$' : transport.currency} ${transport.basePrice}';
+                final accommodationPriceText =
+                    accommodation == null
+                        ? null
+                        : '${accommodation.currency == 'USD' ? r'$' : accommodation.currency} ${accommodation.pricePerNight}';
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,15 +452,23 @@ class _SmartTravelState extends State<SmartTravel> {
                     ),
                     const SizedBox(height: 14),
                     _RecommendationCard(
-                      title: 'Best transportation',
+                      label: 'Best transportation',
+                      title:
+                          transport == null
+                              ? 'No transport found'
+                              : '${transport.mode.toUpperCase()} to ${transport.to['city']}',
                       subtitle:
                           transport == null
                               ? 'No transport found for this destination.'
-                              : '${transport.mode.toUpperCase()} from ${transport.from['city']} to ${transport.to['city']}',
+                              : '${transport.from['city']} to ${transport.to['city']} with ${transport.company.isEmpty ? 'local partner' : transport.company}',
                       meta:
-                          transport == null
-                              ? null
-                              : '\$ ${transport.basePrice} - ${_transportDate(transport)}',
+                          transport == null ? null : _transportDate(transport),
+                      price: transportPriceText,
+                      imagePath: _firstImage(
+                        transport?.images,
+                        'images/pic6.jpg',
+                      ),
+                      actionText: 'View details and book',
                       icon: Icons.alt_route_rounded,
                       onTap:
                           transport == null
@@ -470,7 +483,7 @@ class _SmartTravelState extends State<SmartTravel> {
                                           title: transport.mode.toUpperCase(),
                                           type: 'transport',
                                           price:
-                                              '\$ ${transport.basePrice} - ${_transportDate(transport)}',
+                                              '$transportPriceText - ${_transportDate(transport)}',
                                           origin:
                                               transport.from['city']
                                                   ?.toString(),
@@ -478,6 +491,14 @@ class _SmartTravelState extends State<SmartTravel> {
                                               transport.to['city']?.toString(),
                                           relatedDestinationId:
                                               transport.to['code']?.toString(),
+                                          remainingCapacity:
+                                              transport.remainingCapacity,
+                                          description:
+                                              '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
+                                          images: transport.images,
+                                          transportTickets: [
+                                            _transportTicketMap(transport),
+                                          ],
                                         ),
                                   ),
                                 );
@@ -485,15 +506,28 @@ class _SmartTravelState extends State<SmartTravel> {
                     ),
                     const SizedBox(height: 12),
                     _RecommendationCard(
-                      title: 'Best accommodation',
+                      label: 'Best accommodation',
+                      title:
+                          accommodation == null
+                              ? 'No accommodation found'
+                              : accommodation.name,
                       subtitle:
                           accommodation == null
                               ? 'No accommodation found for this destination.'
-                              : '${accommodation.name} in ${accommodation.destinationName}',
+                              : '${_displayType(accommodation.type)} in ${accommodation.destinationName} - up to ${accommodation.maxGuests} guests',
                       meta:
                           accommodation == null
                               ? null
-                              : '\$ ${accommodation.pricePerNight} per night - ${accommodation.ratingAvg.toStringAsFixed(1)} rating',
+                              : '${accommodation.ratingAvg.toStringAsFixed(1)} rating',
+                      price:
+                          accommodationPriceText == null
+                              ? null
+                              : '$accommodationPriceText / night',
+                      imagePath: _firstImage(
+                        accommodation?.images,
+                        'images/pic8.jpg',
+                      ),
+                      actionText: 'View details and book',
                       icon: Icons.hotel_rounded,
                       onTap:
                           accommodation == null
@@ -508,12 +542,15 @@ class _SmartTravelState extends State<SmartTravel> {
                                           title: accommodation.name,
                                           type: 'accommodation',
                                           price:
-                                              '\$ ${accommodation.pricePerNight} - per night',
+                                              '$accommodationPriceText - per night',
                                           destination:
                                               accommodation.destinationName,
                                           description:
                                               accommodation.description,
                                           ratingAvg: accommodation.ratingAvg,
+                                          itemTypeLabel: _displayType(
+                                            accommodation.type,
+                                          ),
                                           relatedDestinationId:
                                               accommodation.destinationId,
                                           maxGuests: accommodation.maxGuests,
@@ -521,6 +558,12 @@ class _SmartTravelState extends State<SmartTravel> {
                                           beds: accommodation.beds,
                                           bathrooms: accommodation.bathrooms,
                                           amenities: accommodation.amenities,
+                                          roomOptions:
+                                              accommodation.roomOptions,
+                                          images: accommodation.images,
+                                          address: accommodation.address,
+                                          latitude: accommodation.latitude,
+                                          longitude: accommodation.longitude,
                                         ),
                                   ),
                                 );
@@ -534,7 +577,7 @@ class _SmartTravelState extends State<SmartTravel> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 14,
                             offset: const Offset(0, 8),
                           ),
@@ -582,8 +625,9 @@ class _SmartTravelState extends State<SmartTravel> {
                                   child: Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceStrong
-                                          .withOpacity(0.7),
+                                      color: AppColors.surfaceStrong.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Row(
@@ -634,10 +678,15 @@ class _SmartTravelState extends State<SmartTravel> {
                       budget: _budget,
                       transportCost:
                           (transport?.basePrice.toDouble() ?? 0) * _travelers,
-                      accommodationCost:
-                          (accommodation?.pricePerNight.toDouble() ?? 0) *
-                          _stayNights(_durationDays) *
-                          _travelers,
+                      accommodationUnits: _accommodationUnits(
+                        accommodation,
+                        _travelers,
+                      ),
+                      accommodationCost: _estimateAccommodationCost(
+                        accommodation,
+                        _durationDays,
+                        _travelers,
+                      ),
                       attractionCost: topAttractions.fold<double>(
                         0,
                         (sum, item) =>
@@ -666,7 +715,11 @@ class _SmartTravelState extends State<SmartTravel> {
         nightlyBudget == null
             ? candidatePool
             : candidatePool
-                .where((a) => a.pricePerNight <= nightlyBudget)
+                .where(
+                  (a) =>
+                      a.pricePerNight * _accommodationUnits(a, _travelers) <=
+                      nightlyBudget,
+                )
                 .toList();
 
     final source = withinBudget.isNotEmpty ? withinBudget : candidatePool;
@@ -679,6 +732,54 @@ class _SmartTravelState extends State<SmartTravel> {
   }
 
   int _stayNights(int days) => days <= 1 ? 1 : days - 1;
+
+  InputDecoration _smartNumberFieldDecoration(String label) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.12)),
+    );
+
+    return InputDecoration(
+      labelText: label,
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
+      labelStyle: GoogleFonts.manrope(
+        color: AppColors.muted,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+      floatingLabelStyle: GoogleFonts.manrope(
+        color: AppColors.primary,
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+      ),
+      filled: true,
+      fillColor: AppColors.surfaceStrong.withValues(alpha: 0.72),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+      border: border,
+      enabledBorder: border,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+      ),
+    );
+  }
+
+  int _accommodationUnits(Accommodation? accommodation, int travelers) {
+    if (accommodation == null) return 0;
+    final capacity = accommodation.maxGuests < 1 ? 1 : accommodation.maxGuests;
+    return (travelers / capacity).ceil();
+  }
+
+  double _estimateAccommodationCost(
+    Accommodation? accommodation,
+    int durationDays,
+    int travelers,
+  ) {
+    if (accommodation == null) return 0;
+    return accommodation.pricePerNight.toDouble() *
+        _stayNights(durationDays) *
+        _accommodationUnits(accommodation, travelers);
+  }
 
   double _estimateTotalCost({
     required Transport? transport,
@@ -693,10 +794,11 @@ class _SmartTravelState extends State<SmartTravel> {
       0,
       (sum, item) => sum + (item.ticketPrice.toDouble() * travelers),
     );
-    final stay =
-        (accommodation?.pricePerNight.toDouble() ?? 0) *
-        _stayNights(durationDays) *
-        travelers;
+    final stay = _estimateAccommodationCost(
+      accommodation,
+      durationDays,
+      travelers,
+    );
     final route = (transport?.basePrice.toDouble() ?? 0) * travelers;
 
     return route + stay + ticketTotal + food + localTransport;
@@ -705,75 +807,229 @@ class _SmartTravelState extends State<SmartTravel> {
   String _transportDate(Transport transport) {
     final departAt = transport.schedule['departAt'];
     if (departAt == null) return 'Flexible';
+    if (departAt is DateTime) return DateFormat('d MMM').format(departAt);
     return DateFormat('d MMM').format(departAt.toDate());
   }
+
+  DateTime? _transportDateTime(Transport transport) {
+    final departAt = transport.schedule['departAt'];
+    if (departAt == null) return null;
+    if (departAt is DateTime) return departAt;
+    return departAt.toDate();
+  }
+
+  Map<String, dynamic> _transportTicketMap(Transport transport) {
+    final date = _transportDateTime(transport);
+    final currency = transport.currency == 'USD' ? r'$' : transport.currency;
+    return {
+      'id': transport.id,
+      'title': transport.mode.toUpperCase(),
+      'mode': transport.mode,
+      'company': transport.company,
+      'flightNumber': transport.flightNumber,
+      'trainNumber': transport.trainNumber,
+      'origin': transport.from['city']?.toString(),
+      'destination': transport.to['city']?.toString(),
+      'relatedDestinationId': transport.to['code']?.toString(),
+      'price': transport.basePrice,
+      'currency': currency,
+      'priceText': '$currency ${transport.basePrice}',
+      'departAt': date,
+      'remainingCapacity': transport.remainingCapacity,
+      'description':
+          '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
+      'images': transport.images,
+    };
+  }
+
+  String _vehicleDisplayName(String mode) {
+    switch (mode.toLowerCase()) {
+      case 'flight':
+        return 'Flight';
+      case 'train':
+        return 'Train';
+      case 'bus':
+        return 'Bus';
+      case 'ship':
+      case 'ferry':
+        return 'Ferry';
+      default:
+        return _displayType(mode.isEmpty ? 'transport' : mode);
+    }
+  }
+}
+
+String _firstImage(List<dynamic>? images, String fallback) {
+  final paths =
+      (images ?? const [])
+          .map((path) => path.toString())
+          .where((path) => path.trim().isNotEmpty)
+          .toList();
+  return paths.isEmpty ? fallback : paths.first;
+}
+
+String _displayType(String value) {
+  if (value.isEmpty) return '';
+  return value
+      .split(RegExp(r'[-_\s]+'))
+      .where((part) => part.isNotEmpty)
+      .map((part) => part[0].toUpperCase() + part.substring(1))
+      .join(' ');
 }
 
 class _RecommendationCard extends StatelessWidget {
   const _RecommendationCard({
+    required this.label,
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.imagePath,
     this.meta,
+    this.price,
+    this.actionText,
     this.onTap,
   });
 
+  final String label;
   final String title;
   final String subtitle;
   final String? meta;
+  final String? price;
+  final String? actionText;
+  final String imagePath;
   final IconData icon;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 14,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceStrong,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(icon, color: AppColors.primary),
+            Stack(
+              children: [
+                Image.asset(
+                  imagePath,
+                  height: 170,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (_, __, ___) => Container(
+                        height: 170,
+                        color: AppColors.surfaceStrong,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.image_not_supported_rounded,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                ),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.ink.withValues(alpha: 0.72),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, size: 18, color: AppColors.white),
+                        const SizedBox(width: 7),
+                        Text(
+                          label,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 6),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     subtitle,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(height: 1.45),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: AppColors.ink.withValues(alpha: 0.78),
+                      height: 1.45,
+                    ),
                   ),
-                  if (meta != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      meta!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (price != null)
+                        _RecommendationChip(
+                          icon: Icons.payments_rounded,
+                          label: price!,
+                          strong: true,
+                        ),
+                      if (meta != null)
+                        _RecommendationChip(
+                          icon: Icons.event_available_rounded,
+                          label: meta!,
+                        ),
+                    ],
+                  ),
+                  if (onTap != null && actionText != null) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            actionText!,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -786,6 +1042,50 @@ class _RecommendationCard extends StatelessWidget {
   }
 }
 
+class _RecommendationChip extends StatelessWidget {
+  const _RecommendationChip({
+    required this.icon,
+    required this.label,
+    this.strong = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool strong;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color:
+            strong
+                ? AppColors.primary.withValues(alpha: 0.12)
+                : AppColors.surfaceStrong,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: strong ? AppColors.primary : AppColors.muted,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: strong ? AppColors.primary : AppColors.ink,
+              fontWeight: strong ? FontWeight.w800 : FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CostCard extends StatelessWidget {
   const _CostCard({
     required this.durationDays,
@@ -793,6 +1093,7 @@ class _CostCard extends StatelessWidget {
     required this.totalCost,
     required this.budget,
     required this.transportCost,
+    required this.accommodationUnits,
     required this.accommodationCost,
     required this.attractionCost,
   });
@@ -802,6 +1103,7 @@ class _CostCard extends StatelessWidget {
   final double totalCost;
   final num? budget;
   final double transportCost;
+  final int accommodationUnits;
   final double accommodationCost;
   final double attractionCost;
 
@@ -818,8 +1120,8 @@ class _CostCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.ink.withOpacity(0.96),
-            AppColors.primary.withOpacity(0.9),
+            AppColors.ink.withValues(alpha: 0.96),
+            AppColors.primary.withValues(alpha: 0.9),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
@@ -836,6 +1138,12 @@ class _CostCard extends StatelessWidget {
           const SizedBox(height: 12),
           _costRow('Travelers', travelers.toDouble(), valueAsCount: true),
           _costRow('Transportation', transportCost),
+          if (accommodationUnits > 1)
+            _costRow(
+              'Accommodation units',
+              accommodationUnits.toDouble(),
+              valueAsCount: true,
+            ),
           _costRow('Accommodation', accommodationCost),
           _costRow('Attractions', attractionCost),
           _costRow('Food', foodCost.toDouble()),
@@ -874,7 +1182,7 @@ class _CostCard extends StatelessWidget {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.white.withOpacity(strong ? 1 : 0.88),
+                    color: AppColors.white.withValues(alpha: strong ? 1 : 0.88),
                     fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),

@@ -16,8 +16,10 @@ class Accommodation {
   final int beds;
   final int bathrooms;
   final List<dynamic> amenities;
+  final List<Map<String, dynamic>> roomOptions;
   final List<dynamic> images; // storage paths
   final String description;
+  final Map<String, dynamic> location;
   final DateTime createdAt;
 
   Accommodation({
@@ -36,16 +38,25 @@ class Accommodation {
     required this.beds,
     required this.bathrooms,
     required this.amenities,
+    required this.roomOptions,
     required this.images,
     required this.description,
+    required this.location,
     required this.createdAt,
   });
 
+  String get address => (location['address'] ?? '').toString();
+  double? get latitude => (location['lat'] as num?)?.toDouble();
+  double? get longitude => (location['lng'] as num?)?.toDouble();
+
   factory Accommodation.fromMap(String id, Map<String, dynamic> m) {
+    final destination = Map<String, dynamic>.from(
+      m['destination'] ?? const {},
+    );
     return Accommodation(
       id: id,
-      destinationId: m['destination']['id'] ?? '',
-      destinationName: m['destination']['name'] ?? '',
+      destinationId: destination['id'] ?? '',
+      destinationName: destination['name'] ?? '',
       name: m['name'],
       type: m['type'],
       description: m['description'] ?? '',
@@ -59,7 +70,13 @@ class Accommodation {
       beds: (m['beds'] ?? 1) as int,
       bathrooms: (m['bathrooms'] ?? 1) as int,
       amenities: (m['amenities'] ?? []) as List<dynamic>,
+      roomOptions:
+          ((m['roomOptions'] ?? const []) as List)
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList(),
       images: (m['images'] ?? []) as List<dynamic>,
+      location: Map<String, dynamic>.from(m['location'] ?? const {}),
       createdAt: (m['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }

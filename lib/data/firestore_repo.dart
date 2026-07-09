@@ -74,7 +74,7 @@ class FirestoreRepo {
   Stream<List<Map<String, dynamic>>> streamTransports({
     String? fromCode,
     String? toCode, // ← اختیاری
-    List<String>? modes, // flight | train | bus | boat
+    List<String>? modes, // flight | train | bus | ship
     DateTime? startDate, // NEW
     DateTime? endDate,
     String? sortBy, // 'price' | 'duration'
@@ -91,17 +91,31 @@ class FirestoreRepo {
       q = q.where('mode', whereIn: modes);
     }
     if (startDate != null) {
-      q = q.where('schedule.departAt', isGreaterThanOrEqualTo: startDate);
+      final startOfDay = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+
+      final endOfDay = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+        23,
+        59,
+        59,
+      );
+
+      q = q
+          .where('schedule.departAt', isGreaterThanOrEqualTo: startOfDay)
+          .where('schedule.departAt', isLessThanOrEqualTo: endOfDay);
     }
-    // if (endDate != null) {
-    //   q = q.where('schedule.arriveAt', isLessThanOrEqualTo: endDate);
-    // }
 
     // برای MVP: قیمت؛ اگر duration می‌خواهی، یا فیلد duration ذخیره کن یا کلاینت سورت کند.
-    if (sortBy == 'date') {
-      q = q.orderBy('schedule.departAt');
-    } else {
+    if (sortBy == 'basePrice') {
       q = q.orderBy('basePrice');
+    } else {
+      q = q.orderBy('schedule.departAt');
     }
 
     return q.snapshots().map(
@@ -123,27 +137,87 @@ class FirestoreRepo {
     if (destinationId != null && destinationId.isNotEmpty) {
       q = q.where('destination.id', isEqualTo: destinationId);
     }
+
     if (originId != null && originId.isNotEmpty) {
       q = q.where('origin.id', isEqualTo: originId);
     }
-    if (types != null && types.isNotEmpty) {
-      q = q.where('type', whereIn: types);
-    }
+
     if (startDate != null) {
-      q = q.where('dates.startDate', isGreaterThanOrEqualTo: startDate);
-    }
-    // if (endDate != null) {
-    //   q = q.where('dates.endDate', isLessThanOrEqualTo: endDate);
-    // }
-    if (sortBy == 'date') {
-      q = q.orderBy('dates.startDate');
-    } else {
-      q = q.orderBy('price');
+      final startOfDay = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+
+      final endOfDay = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+        23,
+        59,
+        59,
+      );
+
+      q = q
+          .where('dates.startDate', isGreaterThanOrEqualTo: startOfDay)
+          .where('dates.startDate', isLessThanOrEqualTo: endOfDay);
     }
 
-    return q.snapshots().map(
-      (s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
-    );
+    return q.snapshots().map((s) {
+      final docs = s.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      final filtered =
+          types == null || types.isEmpty
+              ? docs
+              : docs.where((item) => _tourMatchesAnyType(item, types)).toList();
+
+      filtered.sort(
+        sortBy == 'price' ? _compareToursByPrice : _compareToursByStartDate,
+      );
+      return filtered;
+    });
+  }
+
+  bool _tourMatchesAnyType(Map<String, dynamic> tour, List<String> filters) {
+    final normalizedFilters = filters.map(_normalizeFilterValue).toSet();
+    final tourTypes = _tourTypeValues(tour).map(_normalizeFilterValue).toSet();
+    return tourTypes.any(normalizedFilters.contains);
+  }
+
+  List<String> _tourTypeValues(Map<String, dynamic> tour) {
+    final value = tour['types'];
+    if (value is List) {
+      return value
+          .map((item) => item?.toString() ?? '')
+          .where((item) => item.isNotEmpty)
+          .toList();
+    }
+
+    final fallback = tour['type']?.toString() ?? '';
+    return fallback.isEmpty ? const [] : [fallback];
+  }
+
+  String _normalizeFilterValue(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[\s_]+'), '-');
+  }
+
+  int _compareToursByPrice(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final aPrice = (a['price'] as num?) ?? 0;
+    final bPrice = (b['price'] as num?) ?? 0;
+    return aPrice.compareTo(bPrice);
+  }
+
+  int _compareToursByStartDate(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final aDate = _dateValue(a['dates'], 'startDate');
+    final bDate = _dateValue(b['dates'], 'startDate');
+    return aDate.compareTo(bDate);
+  }
+
+  DateTime _dateValue(Object? map, String key) {
+    if (map is! Map) return DateTime.fromMillisecondsSinceEpoch(0);
+    final value = map[key];
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    return DateTime.fromMillisecondsSinceEpoch(0);
   }
 
   // ---------------- Attractions ----------------
@@ -193,6 +267,99 @@ class FirestoreRepo {
       .snapshots()
       .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
 
+  Stream<ReviewStats> streamReviewStats({
+    required String targetType,
+    required String targetId,
+  }) {
+    return streamReviews(targetType: targetType, targetId: targetId).map((
+      reviews,
+    ) {
+      final ratings =
+          reviews
+              .map((review) => review['rating'])
+              .whereType<num>()
+              .map((rating) => rating.toDouble())
+              .where((rating) => rating > 0)
+              .toList();
+
+      if (ratings.isEmpty) return const ReviewStats(average: 0, count: 0);
+
+      final total = ratings.fold<double>(0, (sum, rating) => sum + rating);
+      return ReviewStats(average: total / ratings.length, count: ratings.length);
+    });
+  }
+
+  Future<void> addReview({
+    required String targetType,
+    required String targetId,
+    required String userUid,
+    required String userName,
+    required int rating,
+    required String text,
+  }) async {
+    final reviewRef = _db
+        .collection('reviews')
+        .doc('${targetType}_${targetId}_$userUid');
+
+    await reviewRef.set({
+      'targetType': targetType,
+      'targetId': targetId,
+      'userUid': userUid,
+      'userId': userName,
+      'rating': rating,
+      'text': text.trim(),
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    await _updateTargetRating(targetType: targetType, targetId: targetId);
+  }
+
+  Future<void> _updateTargetRating({
+    required String targetType,
+    required String targetId,
+  }) async {
+    String? collection;
+    if (targetType == 'tour') {
+      collection = 'tours';
+    } else if (targetType == 'accommodation') {
+      collection = 'accommodations';
+    } else if (targetType == 'attraction') {
+      collection = 'attractions';
+    } else if (targetType == 'transport') {
+      collection = 'transports';
+    }
+    if (collection == null) return;
+
+    final snapshot =
+        await _db
+            .collection('reviews')
+            .where('targetType', isEqualTo: targetType)
+            .where('targetId', isEqualTo: targetId)
+            .get();
+
+    final ratings =
+        snapshot.docs
+            .map((doc) => doc.data()['rating'])
+            .whereType<num>()
+            .map((rating) => rating.toDouble())
+            .where((rating) => rating > 0)
+            .toList();
+
+    if (ratings.isEmpty) {
+      await _db.collection(collection).doc(targetId).set({
+        'ratingAvg': 0,
+        'ratingCount': 0,
+      }, SetOptions(merge: true));
+      return;
+    }
+
+    final total = ratings.fold<double>(0, (sum, rating) => sum + rating);
+    await _db.collection(collection).doc(targetId).set({
+      'ratingAvg': total / ratings.length,
+      'ratingCount': ratings.length,
+    }, SetOptions(merge: true));
+  }
+
   // Storage URL
   Future<String> getDownloadUrl(String path) async =>
       await _storage.ref(path).getDownloadURL();
@@ -230,4 +397,11 @@ class FirestoreRepo {
         .snapshots()
         .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
+}
+
+class ReviewStats {
+  const ReviewStats({required this.average, required this.count});
+
+  final double average;
+  final int count;
 }

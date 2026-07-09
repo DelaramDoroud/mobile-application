@@ -34,9 +34,9 @@ class HomeSectionCarousel extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.ink,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: AppColors.ink),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -62,7 +62,7 @@ class HomeSectionCarousel extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: screenHeight * 0.28,
+            height: screenHeight * 0.32,
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: stream,
               builder: (context, snap) {
