@@ -291,7 +291,7 @@ class DetailsPage extends StatelessWidget {
               ...List.generate(
                 5,
                 (index) => Icon(
-                  index < average.round()
+                  index < average.floor()
                       ? Icons.star_rounded
                       : Icons.star_border_rounded,
                   color: const Color(0xFFFFD54F),

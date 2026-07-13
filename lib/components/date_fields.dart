@@ -51,10 +51,7 @@ class _DateFieldsState extends State<DateFields> {
         suffixIcon:
             hasDate
                 ? IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: AppColors.muted,
-                  ),
+                  icon: const Icon(Icons.close_rounded, color: AppColors.muted),
                   onPressed: () {
                     setState(() {
                       _dateController.clear();
@@ -90,6 +87,14 @@ class _DateFieldsState extends State<DateFields> {
         });
         widget.onDateSelected?.call(pickedDate);
       },
+      // onChanged: (value) {
+      //   try {
+      //     final parsed = DateFormat('dd MMM yyyy').parseStrict(value.trim());
+      //     widget.onDateSelected?.call(parsed);
+      //   } catch (_) {
+      //     widget.onCleared?.call();
+      //   }
+      // },
     );
   }
 }

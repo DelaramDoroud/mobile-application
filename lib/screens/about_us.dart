@@ -12,10 +12,7 @@ class AboutPage extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About Us'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('About Us'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -86,7 +83,12 @@ class AboutPage extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Values
-              Text('Our Values', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              Text(
+                'Our Values',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -107,7 +109,9 @@ class AboutPage extends StatelessWidget {
                 children: const [
                   Expanded(child: _StatTile(label: 'Users', value: '120k+')),
                   SizedBox(width: 10),
-                  Expanded(child: _StatTile(label: 'Destinations', value: '1,800+')),
+                  Expanded(
+                    child: _StatTile(label: 'Destinations', value: '1,800+'),
+                  ),
                   SizedBox(width: 10),
                   Expanded(child: _StatTile(label: 'Partners', value: '250+')),
                 ],
@@ -125,9 +129,9 @@ class AboutPage extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     children: const [
                       _TeamItem(name: 'Sara', role: 'Product', emoji: '🧭'),
-                      _TeamItem(name: 'Omid', role: 'Mobile', emoji: '📱'),
-                      _TeamItem(name: 'Nina', role: 'Design', emoji: '🎨'),
-                      _TeamItem(name: 'Arman', role: 'Data', emoji: '📊'),
+                      _TeamItem(name: 'Delaram', role: 'Mobile', emoji: '📱'),
+                      _TeamItem(name: 'Sama', role: 'Design', emoji: '🎨'),
+                      _TeamItem(name: 'Reza', role: 'Data', emoji: '📊'),
                     ],
                   ),
                 ),
@@ -138,7 +142,7 @@ class AboutPage extends StatelessWidget {
               // Contact
               _SectionCard(
                 title: 'Get in Touch',
-                icon: Icons.mail_outline_rounded,
+                icon: Icons.contact_support_rounded,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -147,32 +151,24 @@ class AboutPage extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        OutlinedButton.icon(
-                          onPressed: () {/* TODO: open email */},
-                          icon: const Icon(Icons.email_outlined),
-                          label: const Text('support@smarttravel.app'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.mail_outline_rounded),
+                            const SizedBox(width: 8),
+                            Text('support@smarttravel.app'),
+                          ],
                         ),
-                        OutlinedButton.icon(
-                          onPressed: () {/* TODO: open website */},
-                          icon: const Icon(Icons.public),
-                          label: const Text('smarttravel.app'),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {/* TODO: open help center */},
-                          icon: const Icon(Icons.help_outline),
-                          label: const Text('Help Center'),
+                        Row(
+                          children: [
+                            Icon(Icons.contact_phone_rounded),
+                            const SizedBox(width: 8),
+                            Text('+39 123 456 7890'),
+                          ],
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(onPressed: () {/* TODO */}, icon: const Icon(Icons.telegram)),
-                        IconButton(onPressed: () {/* TODO */}, icon: const Icon(Icons.facebook)),
-                        IconButton(onPressed: () {/* TODO */}, icon: const Icon(Icons.linked_camera)), // جایگزین برای لینکدین/اینسِتا
-                      ],
-                    )
                   ],
                 ),
               ),
@@ -186,8 +182,12 @@ class AboutPage extends StatelessWidget {
                 children: [
                   Text('Smart Travel • v1.0.0', style: textTheme.bodySmall),
                   const SizedBox(height: 4),
-                  Text('© ${DateTime.now().year} Smart Travel Team. All rights reserved.',
-                      style: textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor)),
+                  Text(
+                    '© ${DateTime.now().year} Smart Travel Team. All rights reserved.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -238,7 +238,12 @@ class _SectionCard extends StatelessWidget {
             children: [
               Icon(icon, color: cs.primary),
               const SizedBox(width: 8),
-              Text(title, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              Text(
+                title,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -265,7 +270,9 @@ class _ValueChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -292,9 +299,17 @@ class _StatTile extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(value, style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 2),
-          Text(label, style: textTheme.labelLarge?.copyWith(color: Theme.of(context).hintColor)),
+          Text(
+            label,
+            style: textTheme.labelLarge?.copyWith(
+              color: Theme.of(context).hintColor,
+            ),
+          ),
         ],
       ),
     );
@@ -305,7 +320,11 @@ class _TeamItem extends StatelessWidget {
   final String name;
   final String role;
   final String emoji;
-  const _TeamItem({required this.name, required this.role, required this.emoji});
+  const _TeamItem({
+    required this.name,
+    required this.role,
+    required this.emoji,
+  });
 
   @override
   Widget build(BuildContext context) {

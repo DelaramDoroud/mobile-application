@@ -39,6 +39,7 @@ class _ReservePageState extends State<ReservePage> {
   DateTime? _departureDate;
   DateTime? _returnDate;
   bool _roundTrip = false;
+  bool _appliedRoundTrip = false;
   Transport? _selectedOutboundTransport;
   Transport? _selectedReturnTransport;
   late final List<bool> _selectedChips;
@@ -121,6 +122,7 @@ class _ReservePageState extends State<ReservePage> {
     setState(() {
       _selectedOutboundTransport = null;
       _selectedReturnTransport = null;
+      _appliedRoundTrip = _roundTrip;
 
       _accItems$ = _repo
           .streamAccommodations(
@@ -463,7 +465,10 @@ class _ReservePageState extends State<ReservePage> {
               Expanded(
                 child: PopupMenu(
                   destinations: _destItems$,
-                  title: _isAccomodation ? 'Choose destination' : 'Select City',
+                  title:
+                      _isAccomodation || _isTransport
+                          ? 'Select destination'
+                          : 'Select City',
                   currentDestId: _selectedDestinationId,
                   borderRadius: BorderRadius.circular(18),
                   hintCoolor: AppColors.muted,
@@ -507,11 +512,9 @@ class _ReservePageState extends State<ReservePage> {
                       },
                       onReturnDateSelected: (date) {
                         setState(() => _returnDate = date);
-                        onSearch();
                       },
                       onReturnDateCleared: () {
                         setState(() => _returnDate = null);
-                        onSearch();
                       },
                     ),
                   ],
@@ -698,7 +701,7 @@ class _ReservePageState extends State<ReservePage> {
     }
 
     if (_isTransport) {
-      if (_roundTrip) {
+      if (_appliedRoundTrip) {
         return SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -724,9 +727,11 @@ class _ReservePageState extends State<ReservePage> {
         itemBuilder: (t) {
           final title = t.mode.toUpperCase();
           final price = "${t.currency == "USD" ? '\$' : '\$'} ${t.basePrice}";
-          final date = DateFormat(
-            'd MMM',
-          ).format(t.schedule['departAt'].toDate());
+          final scheduleDate = _dateFromMap(t.schedule, 'departAt');
+          final date =
+              scheduleDate != null
+                  ? DateFormat('d MMM').format(scheduleDate)
+                  : null;
           final transportNumber = _transportNumberLabel(t);
           return DetailsFrame(
             id: t.id,
@@ -742,8 +747,8 @@ class _ReservePageState extends State<ReservePage> {
             remainingCapacity: t.remainingCapacity,
             itemTypeLabel: transportNumber,
             transportTickets: [_transportTicketMap(t)],
-            price: '$price - $date',
-            roundTrip: _roundTrip,
+            price: date == null ? price : '$price - $date',
+            roundTrip: _appliedRoundTrip,
             returnDate: _returnDate,
             color: const Color(0xFFC8E4F2),
           );
@@ -823,7 +828,7 @@ class _ReservePageState extends State<ReservePage> {
                       ? outbound.remainingCapacity
                       : returning.remainingCapacity,
               roundTrip: true,
-              returnDate: _transportDate(returning),
+              returnDate: _dateFromMap(returning.schedule, 'departAt'),
               transportTickets: [
                 _transportTicketMap(outbound),
                 _transportTicketMap(returning),
@@ -842,7 +847,7 @@ class _ReservePageState extends State<ReservePage> {
   }
 
   Map<String, dynamic> _transportTicketMap(Transport transport) {
-    final date = _transportDate(transport);
+    final date = _dateFromMap(transport.schedule, 'departAt');
     return {
       'id': transport.id,
       'title': transport.mode.toUpperCase(),
@@ -881,12 +886,12 @@ class _ReservePageState extends State<ReservePage> {
     return '';
   }
 
-  DateTime? _transportDate(Transport transport) {
-    final value = transport.schedule['departAt'];
-    if (value == null) return null;
-    if (value is DateTime) return value;
-    return value.toDate();
-  }
+  // DateTime? _transportDate(Transport transport) {
+  //   final value = transport.schedule['departAt'];
+  //   if (value == null) return null;
+  //   if (value is DateTime) return value;
+  //   return value.toDate();
+  // }
 }
 
 String _vehicleName(int i) {
@@ -1050,8 +1055,14 @@ class _TransportSelectionSection extends StatelessWidget {
                   final title = transport.mode.toUpperCase();
                   final price =
                       '${transport.currency == 'USD' ? r'$' : transport.currency} ${transport.basePrice}';
-                  final date = _transportDateText(transport);
-
+                  final scheduleDate = _dateFromMap(
+                    transport.schedule,
+                    'departAt',
+                  );
+                  final date =
+                      scheduleDate != null
+                          ? DateFormat('d MMM').format(scheduleDate)
+                          : null;
                   return DetailsFrame(
                     id: transport.id,
                     imagePath:
@@ -1066,7 +1077,7 @@ class _TransportSelectionSection extends StatelessWidget {
                     description:
                         '${_vehicleDisplayName(transport.mode)} ticket operated by ${transport.company.isEmpty ? 'local partner' : transport.company}.',
                     images: transport.images,
-                    price: date.isEmpty ? price : '$price - $date',
+                    price: date == null ? price : '$price - $date',
                     color: const Color(0xFFC8E4F2),
                     onTap: () => onSelected(transport),
                   );
@@ -1080,12 +1091,12 @@ class _TransportSelectionSection extends StatelessWidget {
   }
 }
 
-String _transportDateText(Transport transport) {
-  final value = transport.schedule['departAt'];
-  if (value == null) return '';
-  final date = value is DateTime ? value : value.toDate();
-  return DateFormat('d MMM yyyy').format(date);
-}
+// String _transportDateText(Transport transport) {
+//   final value = transport.schedule['departAt'];
+//   if (value == null) return '';
+//   final date = value is DateTime ? value : value.toDate();
+//   return DateFormat('d MMM yyyy').format(date);
+// }
 
 String _vehicleDisplayName(String mode) {
   if (mode == 'ship') return 'Ship';

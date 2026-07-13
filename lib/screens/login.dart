@@ -46,12 +46,13 @@ class _LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Login failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      final msg =
+          e.code == 'wrong-password'
+              ? 'Password is incorrect'
+              : e.message ?? 'Login failed';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -114,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                           icon: Icons.person_outline_rounded,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Username is empty';
+                              return 'Email is empty';
                             }
                             return null;
                           },

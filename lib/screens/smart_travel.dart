@@ -29,6 +29,7 @@ class _SmartTravelState extends State<SmartTravel> {
   String? _selectedOriginId;
   String? _selectedDestinationId;
   bool _showPlan = false;
+  String? _neededRoom;
 
   late final Stream<List<Map<String, dynamic>>> _destinationsRaw$;
   late final Stream<List<Destination>> _destinations$;
@@ -425,7 +426,8 @@ class _SmartTravelState extends State<SmartTravel> {
                     accommodations.isEmpty
                         ? null
                         : _pickAccommodation(accommodations);
-                final transport = transports.isEmpty ? null : transports.first;
+                final transport =
+                    transports.isEmpty ? null : _pickTransport(transports);
                 final topAttractions = attractions.take(3).toList();
                 final totalCost = _estimateTotalCost(
                   transport: transport,
@@ -704,10 +706,23 @@ class _SmartTravelState extends State<SmartTravel> {
   }
 
   Accommodation _pickAccommodation(List<Accommodation> accommodations) {
+    final accommodationBudget = _budget == null ? null : _budget! * 0.45;
     final nightlyBudget =
-        _budget == null ? null : (_budget! / _stayNights(_durationDays));
+        accommodationBudget == null
+            ? null
+            : (accommodationBudget / _stayNights(_durationDays));
+    // final rooms = accommodations
     final suitableForGuests =
-        accommodations.where((a) => a.maxGuests >= _travelers).toList();
+        accommodations
+            .where(
+              (a) =>
+                  a.type.toLowerCase() == 'hotel'
+                      ? a.roomOptions.any(
+                        (room) => room['maxGuests'] >= _travelers,
+                      )
+                      : a.maxGuests >= _travelers,
+            )
+            .toList();
     final candidatePool =
         suitableForGuests.isNotEmpty ? suitableForGuests : accommodations;
 
@@ -726,6 +741,27 @@ class _SmartTravelState extends State<SmartTravel> {
     source.sort((a, b) {
       final aScore = a.ratingAvg / (a.pricePerNight == 0 ? 1 : a.pricePerNight);
       final bScore = b.ratingAvg / (b.pricePerNight == 0 ? 1 : b.pricePerNight);
+      return bScore.compareTo(aScore);
+    });
+    return source.first;
+  }
+
+  Transport? _pickTransport(List<Transport> transports) {
+    final transportBudget = _budget == null ? null : _budget! * 0.25;
+    final suitableForTravelers =
+        transports.where((t) => t.remainingCapacity >= _travelers).toList();
+    final candidatePool =
+        suitableForTravelers.isNotEmpty ? suitableForTravelers : transports;
+    final withinBudget =
+        transportBudget == null
+            ? candidatePool
+            : candidatePool
+                .where((t) => t.basePrice * _travelers <= transportBudget)
+                .toList();
+    final source = withinBudget.isNotEmpty ? withinBudget : candidatePool;
+    source.sort((a, b) {
+      final aScore = a.basePrice == 0 ? 1 : a.basePrice;
+      final bScore = b.basePrice == 0 ? 1 : b.basePrice;
       return bScore.compareTo(aScore);
     });
     return source.first;
@@ -766,8 +802,52 @@ class _SmartTravelState extends State<SmartTravel> {
 
   int _accommodationUnits(Accommodation? accommodation, int travelers) {
     if (accommodation == null) return 0;
+    if (accommodation.type.toLowerCase() == 'hotel') {
+      final bestRoom = _bestRoomOptionFor(accommodation, travelers);
+      if (bestRoom != null) {
+        return bestRoom['neededRooms'] as int;
+      }
+    }
     final capacity = accommodation.maxGuests < 1 ? 1 : accommodation.maxGuests;
     return (travelers / capacity).ceil();
+  }
+
+  Map<String, dynamic>? _bestRoomOptionFor(
+    Accommodation accommodation,
+    int travelers,
+  ) {
+    if (accommodation.roomOptions.isEmpty) return null;
+
+    final candidates =
+        accommodation.roomOptions
+            .map((room) {
+              final maxGuests = (room['maxGuests'] as num?)?.toInt() ?? 0;
+              final rooms = (room['rooms'] as num?)?.toInt() ?? 0;
+              final price = (room['pricePerNight'] as num?)?.toDouble() ?? 0;
+
+              if (maxGuests < 1 || rooms < 1) return null;
+
+              final neededRooms = (travelers / maxGuests).ceil();
+              if (neededRooms > rooms) return null;
+
+              return {
+                'room': room,
+                'neededRooms': neededRooms,
+                'totalNightlyPrice': neededRooms * price,
+              };
+            })
+            .whereType<Map<String, dynamic>>()
+            .toList();
+
+    if (candidates.isEmpty) return null;
+
+    candidates.sort((a, b) {
+      final aPrice = a['totalNightlyPrice'] as double;
+      final bPrice = b['totalNightlyPrice'] as double;
+      return aPrice.compareTo(bPrice);
+    });
+    _neededRoom = candidates.first['room']['pricePerNight']?.toString();
+    return candidates.first;
   }
 
   double _estimateAccommodationCost(
@@ -776,9 +856,11 @@ class _SmartTravelState extends State<SmartTravel> {
     int travelers,
   ) {
     if (accommodation == null) return 0;
-    return accommodation.pricePerNight.toDouble() *
-        _stayNights(durationDays) *
-        _accommodationUnits(accommodation, travelers);
+    return accommodation.type.toLowerCase() == 'hotel'
+        ? (double.tryParse(_neededRoom ?? '0') ?? 0)
+        : accommodation.pricePerNight.toDouble() *
+            _stayNights(durationDays) *
+            _accommodationUnits(accommodation, travelers);
   }
 
   double _estimateTotalCost({

@@ -181,7 +181,7 @@ class AttractionDetailsPage extends StatelessWidget {
                           children: List.generate(
                             5,
                             (index) => Icon(
-                              index < attraction.ratingAvg.round()
+                              index < attraction.ratingAvg.floor()
                                   ? Icons.star_rounded
                                   : Icons.star_border_rounded,
                               color: AppColors.accent,

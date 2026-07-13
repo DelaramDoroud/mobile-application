@@ -1,22 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 
 class FirestoreRepo {
   final _db = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
 
-  // ---------------- Config ----------------
-  Stream<Map<String, dynamic>?> streamFilterOptions() =>
-      _db.collection('system').doc('config').snapshots().map((s) => s.data());
-
   // ---------------- Accommodations ----------------
   Stream<List<Map<String, dynamic>>> streamAccommodations({
-    String? destinationName,
+    // String? destinationName,
     String? destinationId,
     List<String>? types,
     DateTime? startDate, // NEW
-    DateTime? endDate,
+    // DateTime? endDate,
     String? sortBy, // 'price' | 'rating'
   }) {
     Query<Map<String, dynamic>> q = _db.collection('accommodations');
@@ -39,34 +34,33 @@ class FirestoreRepo {
 
     return q.snapshots().map((s) {
       final docs = s.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      return docs;
 
-      if (startDate == null) return docs;
+      // // فقط-تاریخ به‌صورت لوکال (بدون UTC)
+      // final sel = DateUtils.dateOnly(startDate);
 
-      // فقط-تاریخ به‌صورت لوکال (بدون UTC)
-      final sel = DateUtils.dateOnly(startDate);
+      // return docs.where((item) {
+      //   final av = item['availability'];
+      //   if (av is! List || av.isEmpty) return false;
 
-      return docs.where((item) {
-        final av = item['availability'];
-        if (av is! List || av.isEmpty) return false;
+      //   return av.any((slot) {
+      //     if (slot is! Map) return false;
 
-        return av.any((slot) {
-          if (slot is! Map) return false;
+      //     final tsFrom = slot['from'] as Timestamp?;
+      //     final tsTo = slot['to'] as Timestamp?;
+      //     if (tsFrom == null || tsTo == null) return false;
 
-          final tsFrom = slot['from'] as Timestamp?;
-          final tsTo = slot['to'] as Timestamp?;
-          if (tsFrom == null || tsTo == null) return false;
+      //     final f = DateUtils.dateOnly(tsFrom.toDate());
+      //     final t = DateUtils.dateOnly(tsTo.toDate());
 
-          final f = DateUtils.dateOnly(tsFrom.toDate());
-          final t = DateUtils.dateOnly(tsTo.toDate());
+      //     final ok = !sel.isBefore(f) && !sel.isAfter(t);
 
-          final ok = !sel.isBefore(f) && !sel.isAfter(t);
+      //     // --- دیباگ موقت، اگر خواستی ببینی چرا رد می‌شود:
+      //     //print('[$sel] in [$f .. $t] => $ok');
 
-          // --- دیباگ موقت، اگر خواستی ببینی چرا رد می‌شود:
-          //print('[$sel] in [$f .. $t] => $ok');
-
-          return ok;
-        });
-      }).toList();
+      //     return ok;
+      //   });
+      // }).toList();
     });
   }
 
@@ -76,8 +70,8 @@ class FirestoreRepo {
     String? toCode, // ← اختیاری
     List<String>? modes, // flight | train | bus | ship
     DateTime? startDate, // NEW
-    DateTime? endDate,
-    String? sortBy, // 'price' | 'duration'
+    // DateTime? endDate,
+    String? sortBy, // 'price' | 'date'
   }) {
     Query<Map<String, dynamic>> q = _db.collection('transports');
 
@@ -113,14 +107,24 @@ class FirestoreRepo {
 
     // برای MVP: قیمت؛ اگر duration می‌خواهی، یا فیلد duration ذخیره کن یا کلاینت سورت کند.
     if (sortBy == 'basePrice') {
-      q = q.orderBy('basePrice');
+      if (startDate != null) {
+        q = q.orderBy('schedule.departAt');
+      }
     } else {
       q = q.orderBy('schedule.departAt');
     }
 
-    return q.snapshots().map(
-      (s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
-    );
+    return q.snapshots().map((s) {
+      final docs = s.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      if (sortBy == 'basePrice') {
+        docs.sort((a, b) {
+          final aPrice = (a['basePrice'] as num?)?.toDouble() ?? 0;
+          final bPrice = (b['basePrice'] as num?)?.toDouble() ?? 0;
+          return aPrice.compareTo(bPrice);
+        });
+      }
+      return docs;
+    });
   }
 
   // ---------------- Tours ----------------
@@ -129,8 +133,8 @@ class FirestoreRepo {
     String? originId,
     List<String>? types, // nature | city | ...
     DateTime? startDate, // NEW
-    DateTime? endDate,
-    String? sortBy, // 'price' | 'rating'
+    // DateTime? endDate,
+    String? sortBy, // 'price' | 'date'
   }) {
     Query<Map<String, dynamic>> q = _db.collection('tours');
 
@@ -163,17 +167,26 @@ class FirestoreRepo {
           .where('dates.startDate', isLessThanOrEqualTo: endOfDay);
     }
 
+    if (sortBy == 'price') {
+      if (startDate != null) {
+        q = q.orderBy('dates.startDate');
+      }
+    } else {
+      q = q.orderBy('dates.startDate');
+    }
+
     return q.snapshots().map((s) {
       final docs = s.docs.map((d) => {'id': d.id, ...d.data()}).toList();
-      final filtered =
-          types == null || types.isEmpty
-              ? docs
-              : docs.where((item) => _tourMatchesAnyType(item, types)).toList();
-
-      filtered.sort(
-        sortBy == 'price' ? _compareToursByPrice : _compareToursByStartDate,
-      );
-      return filtered;
+      if (sortBy == 'price') {
+        docs.sort((a, b) {
+          final aPrice = (a['price'] as num?)?.toDouble() ?? 0;
+          final bPrice = (b['price'] as num?)?.toDouble() ?? 0;
+          return aPrice.compareTo(bPrice);
+        });
+      }
+      return types == null || types.isEmpty
+          ? docs
+          : docs.where((item) => _tourMatchesAnyType(item, types)).toList();
     });
   }
 
@@ -198,26 +211,6 @@ class FirestoreRepo {
 
   String _normalizeFilterValue(String value) {
     return value.trim().toLowerCase().replaceAll(RegExp(r'[\s_]+'), '-');
-  }
-
-  int _compareToursByPrice(Map<String, dynamic> a, Map<String, dynamic> b) {
-    final aPrice = (a['price'] as num?) ?? 0;
-    final bPrice = (b['price'] as num?) ?? 0;
-    return aPrice.compareTo(bPrice);
-  }
-
-  int _compareToursByStartDate(Map<String, dynamic> a, Map<String, dynamic> b) {
-    final aDate = _dateValue(a['dates'], 'startDate');
-    final bDate = _dateValue(b['dates'], 'startDate');
-    return aDate.compareTo(bDate);
-  }
-
-  DateTime _dateValue(Object? map, String key) {
-    if (map is! Map) return DateTime.fromMillisecondsSinceEpoch(0);
-    final value = map[key];
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    return DateTime.fromMillisecondsSinceEpoch(0);
   }
 
   // ---------------- Attractions ----------------
@@ -284,8 +277,11 @@ class FirestoreRepo {
 
       if (ratings.isEmpty) return const ReviewStats(average: 0, count: 0);
 
-      final total = ratings.fold<double>(0, (sum, rating) => sum + rating);
-      return ReviewStats(average: total / ratings.length, count: ratings.length);
+      final total = ratings.fold<double>(0, (total, rating) => total + rating);
+      return ReviewStats(
+        average: total / ratings.length,
+        count: ratings.length,
+      );
     });
   }
 
@@ -353,7 +349,7 @@ class FirestoreRepo {
       return;
     }
 
-    final total = ratings.fold<double>(0, (sum, rating) => sum + rating);
+    final total = ratings.fold<double>(0, (total, rating) => total + rating);
     await _db.collection(collection).doc(targetId).set({
       'ratingAvg': total / ratings.length,
       'ratingCount': ratings.length,

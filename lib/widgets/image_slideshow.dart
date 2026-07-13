@@ -98,7 +98,7 @@ class _ImageSlideshowState extends State<ImageSlideshow> {
                       ? const PageScrollPhysics()
                       : const NeverScrollableScrollPhysics(),
               itemCount: images.length,
-              onPageChanged: (value) => setState(() => _index = value),
+
               itemBuilder: (context, index) {
                 return Image.asset(
                   images[index],

@@ -18,11 +18,12 @@ class _AttractionsState extends State<Attractions> {
   final FirestoreRepo _repo = FirestoreRepo();
 
   String? _selectedDestinationId;
-  String? _selectedCategory;
+  String _selectedCategory = 'Any type';
   late Stream<List<Attraction>> _attractions$;
   late Stream<List<Destination>> _destinations$;
 
   final List<String> _categories = [
+    'Any type',
     'nature',
     'culture',
     'history',
@@ -43,7 +44,7 @@ class _AttractionsState extends State<Attractions> {
     _attractions$ = _repo
         .streamAttractions(
           destinationId: _selectedDestinationId,
-          category: _selectedCategory,
+          category: _selectedCategory == 'Any type' ? null : _selectedCategory,
         )
         .map(
           (list) =>
@@ -138,16 +139,6 @@ class _AttractionsState extends State<Attractions> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _FilterChip(
-                      label: 'Any type',
-                      selected: _selectedCategory == null,
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = null;
-                          _refreshAttractions();
-                        });
-                      },
-                    ),
                     ..._categories.map((category) {
                       return Padding(
                         padding: const EdgeInsets.only(left: 8),

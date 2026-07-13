@@ -179,7 +179,7 @@ class DetailsFrame extends StatelessWidget {
                           if (routeText.isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Text(
-                              routeText,
+                              type == 'tour' ? origin ?? 'tour' : routeText,
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.bodySmall?.copyWith(
@@ -216,7 +216,8 @@ class DetailsFrame extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              if ((itemTypeLabel ?? '').isNotEmpty) ...[
+                              if ((itemTypeLabel ?? '').isNotEmpty &&
+                                  type != 'transport') ...[
                                 const SizedBox(height: 8),
                                 Flexible(
                                   child: _TypeBadge(label: itemTypeLabel!),

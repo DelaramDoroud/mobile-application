@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import '../components/details_frame.dart';
 import '../components/home_section_carousel.dart';
 import '../data/firestore_repo.dart';
@@ -43,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder:
                         (_) =>
-                            ReservePage(accomodations: false, transport: false),
+                            ReservePage(accomodations: false, transport: true),
                   ),
                 );
               },
@@ -342,6 +341,5 @@ Map<String, dynamic> _transportTicketMap(Transport transport) {
 }
 
 String _vehicleDisplayName(String mode) {
-  if (mode == 'ship') return 'Ship';
   return mode.isEmpty ? 'Transport' : mode[0].toUpperCase() + mode.substring(1);
 }
